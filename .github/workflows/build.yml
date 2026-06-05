@@ -1,0 +1,60 @@
+name: Build
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    name: Xcode Build
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -switch /Applications/Xcode_15.4.app/Contents/Developer
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: Build (Debug)
+        run: |
+          xcodebuild build \
+            -project Glimpse.xcodeproj \
+            -scheme Glimpse \
+            -configuration Debug \
+            -destination "platform=macOS,arch=arm64" \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            | xcpretty || xcodebuild build \
+            -project Glimpse.xcodeproj \
+            -scheme Glimpse \
+            -configuration Debug \
+            -destination "platform=macOS,arch=arm64" \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Build (Release)
+        run: |
+          xcodebuild build \
+            -project Glimpse.xcodeproj \
+            -scheme Glimpse \
+            -configuration Release \
+            -destination "platform=macOS,arch=arm64" \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            | xcpretty || xcodebuild build \
+            -project Glimpse.xcodeproj \
+            -scheme Glimpse \
+            -configuration Release \
+            -destination "platform=macOS,arch=arm64" \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO

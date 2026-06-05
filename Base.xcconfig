@@ -1,0 +1,5 @@
+// Base.xcconfig
+// Shared build settings for all configurations.
+// Individual developers may override settings in LocalDev.xcconfig (git-ignored).
+
+#include? "LocalDev.xcconfig"

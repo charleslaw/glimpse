@@ -1,0 +1,11 @@
+// LocalDev.xcconfig
+// Copy this file to LocalDev.xcconfig (git-ignored) to override build settings
+// for your local development environment without affecting other contributors.
+//
+//   cp LocalDev.xcconfig.template LocalDev.xcconfig
+
+// Example: set your Apple Developer Team ID
+// DEVELOPMENT_TEAM = XXXXXXXXXX
+
+// Example: enable local-dev-only code paths
+// SWIFT_ACTIVE_COMPILATION_CONDITIONS = $(inherited) LOCAL_DEV
