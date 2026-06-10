@@ -75,6 +75,10 @@ final class ViewController: NSViewController {
 
         scrollView.zoomDidChange = { [weak self] in self?.refreshTitle() }
 
+        let doubleClick = NSClickGestureRecognizer(target: self, action: #selector(handleDoubleClick(_:)))
+        doubleClick.numberOfClicksRequired = 2
+        scrollView.addGestureRecognizer(doubleClick)
+
         view = contentView
     }
 
@@ -110,6 +114,13 @@ final class ViewController: NSViewController {
     }
 
     // MARK: - Zoom Actions
+
+    @objc private func handleDoubleClick(_ recognizer: NSClickGestureRecognizer) {
+        let location = recognizer.location(in: scrollView)
+        let newMag = min(scrollView.maxMagnification, scrollView.magnification * 2.0)
+        scrollView.setMagnification(newMag, centeredAt: location)
+        refreshTitle()
+    }
 
     @objc func zoomIn() {
         setMagnification(scrollView.magnification * 1.25)
