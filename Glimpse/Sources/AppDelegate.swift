@@ -3,6 +3,7 @@ import Cocoa
 final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private var windowControllers: [WindowController] = []
+    private var zoomModeItems: [ZoomMode: NSMenuItem] = [:]
 
     // MARK: - Lifecycle
 
@@ -59,6 +60,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    @objc private func setZoomMode(_ sender: NSMenuItem) {
+        guard let raw = sender.representedObject as? String,
+              let mode = ZoomMode(rawValue: raw) else { return }
+        ZoomMode.current = mode
+        for (m, item) in zoomModeItems {
+            item.state = m == mode ? .on : .off
+        }
+        windowControllers.forEach { $0.applyZoomMode() }
+    }
+
     private func setupMenuBar() {
         let mainMenu = NSMenu()
         NSApp.mainMenu = mainMenu
@@ -106,6 +117,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                                           action: #selector(NSWindow.toggleFullScreen(_:)),
                                           keyEquivalent: "f")
         fullScreen.keyEquivalentModifierMask = [.command, .control]
+
+        // Settings menu
+        let settingsItem = NSMenuItem()
+        mainMenu.addItem(settingsItem)
+        let settingsMenu = NSMenu(title: "Settings")
+        settingsItem.submenu = settingsMenu
+        for mode in ZoomMode.allCases {
+            let item = NSMenuItem(title: mode.menuTitle,
+                                  action: #selector(setZoomMode(_:)),
+                                  keyEquivalent: "")
+            item.representedObject = mode.rawValue
+            item.state = mode == ZoomMode.current ? .on : .off
+            settingsMenu.addItem(item)
+            zoomModeItems[mode] = item
+        }
 
         // Window menu
         let windowItem = NSMenuItem()

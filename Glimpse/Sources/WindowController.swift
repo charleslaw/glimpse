@@ -43,6 +43,10 @@ final class WindowController: NSWindowController {
     func loadImage(at url: URL) {
         (contentViewController as? ViewController)?.loadImage(at: url)
     }
+
+    func applyZoomMode() {
+        (contentViewController as? ViewController)?.applyZoomMode()
+    }
 }
 
 // MARK: - NSToolbarDelegate

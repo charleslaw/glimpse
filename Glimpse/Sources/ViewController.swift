@@ -41,6 +41,7 @@ final class ViewController: NSViewController {
     private var navigator: FileNavigator?
     private var currentImageSize: NSSize = .zero
     private static let ciContext = CIContext()
+    private var windowResizeObserver: NSObjectProtocol?
 
     // MARK: - View Lifecycle
 
@@ -80,6 +81,20 @@ final class ViewController: NSViewController {
     override func viewDidAppear() {
         super.viewDidAppear()
         view.window?.makeFirstResponder(view)
+        windowResizeObserver = NotificationCenter.default.addObserver(
+            forName: NSWindow.didResizeNotification,
+            object: view.window,
+            queue: .main
+        ) { [weak self] _ in
+            guard ZoomMode.current == .bestFit else { return }
+            self?.zoomBestFit()
+        }
+    }
+
+    deinit {
+        if let observer = windowResizeObserver {
+            NotificationCenter.default.removeObserver(observer)
+        }
     }
 
     // MARK: - Public
@@ -87,6 +102,11 @@ final class ViewController: NSViewController {
     func loadImage(at url: URL) {
         navigator = FileNavigator(currentURL: url)
         displayCurrentImage()
+    }
+
+    func applyZoomMode() {
+        guard currentImageSize.width > 0, currentImageSize.height > 0 else { return }
+        applyZoom(imageSize: currentImageSize)
     }
 
     // MARK: - Zoom Actions
@@ -183,7 +203,7 @@ final class ViewController: NSViewController {
         currentImageSize = image.size
         imageView.frame = NSRect(origin: .zero, size: image.size)
 
-        fitWindowToImage(image)
+        applyZoom(imageSize: image.size)
         refreshTitle()
         view.window?.makeFirstResponder(view)
     }
@@ -203,35 +223,71 @@ final class ViewController: NSViewController {
         view.window?.title = "\(base)\(res) — \(zoom)%"
     }
 
-    private func fitWindowToImage(_ image: NSImage) {
+    private func applyZoom(imageSize: NSSize) {
+        switch ZoomMode.current {
+        case .bestFit:
+            fitWindowBestFit(imageSize: imageSize)
+        case .actualSize:
+            fitWindowActualSize(imageSize: imageSize)
+        case .autoSize:
+            let screen = view.window?.screen ?? NSScreen.main
+            let screenFrame = screen?.visibleFrame ?? .zero
+            let fitsAt1x = imageSize.width  <= screenFrame.width  * 0.9 &&
+                           imageSize.height <= screenFrame.height * 0.9
+            if fitsAt1x {
+                fitWindowActualSize(imageSize: imageSize)
+            } else {
+                fitWindowBestFit(imageSize: imageSize)
+            }
+        }
+    }
+
+    private func fitWindowBestFit(imageSize: NSSize) {
         guard let window = view.window,
               let screen = window.screen ?? NSScreen.main else { return }
-
-        let imageSize = image.size
         guard imageSize.width > 0, imageSize.height > 0 else { return }
 
         let screenFrame = screen.visibleFrame
         let maxWidth  = screenFrame.width  * 0.9
         let maxHeight = screenFrame.height * 0.9
 
-        // Scale that makes the image fill the available screen area; never exceed 1:1
         let fitMag = min(1.0, maxWidth / imageSize.width, maxHeight / imageSize.height)
-
-        // Content area = image rendered at fitMag
         let contentWidth  = max(imageSize.width  * fitMag, 200)
         let contentHeight = max(imageSize.height * fitMag, 150)
 
-        // Convert content size → outer window frame size (adds title bar height)
         let frameSize = window.frameRect(
             forContentRect: NSRect(origin: .zero,
                                    size: NSSize(width: contentWidth, height: contentHeight))
         ).size
-
         let origin = NSPoint(
             x: screenFrame.minX + (screenFrame.width  - frameSize.width)  / 2,
             y: screenFrame.minY + (screenFrame.height - frameSize.height) / 2
         )
         window.setFrame(NSRect(origin: origin, size: frameSize), display: true, animate: false)
         scrollView.magnification = fitMag
+    }
+
+    private func fitWindowActualSize(imageSize: NSSize) {
+        guard let window = view.window,
+              let screen = window.screen ?? NSScreen.main else { return }
+        guard imageSize.width > 0, imageSize.height > 0 else { return }
+
+        let screenFrame = screen.visibleFrame
+        let maxWidth  = screenFrame.width  * 0.9
+        let maxHeight = screenFrame.height * 0.9
+
+        let contentWidth  = max(min(imageSize.width,  maxWidth),  200)
+        let contentHeight = max(min(imageSize.height, maxHeight), 150)
+
+        let frameSize = window.frameRect(
+            forContentRect: NSRect(origin: .zero,
+                                   size: NSSize(width: contentWidth, height: contentHeight))
+        ).size
+        let origin = NSPoint(
+            x: screenFrame.minX + (screenFrame.width  - frameSize.width)  / 2,
+            y: screenFrame.minY + (screenFrame.height - frameSize.height) / 2
+        )
+        window.setFrame(NSRect(origin: origin, size: frameSize), display: true, animate: false)
+        scrollView.magnification = 1.0
     }
 }
