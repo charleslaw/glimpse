@@ -1,4 +1,5 @@
 import Cocoa
+import CoreImage
 
 // MARK: - ContentView
 
@@ -39,6 +40,7 @@ final class ViewController: NSViewController {
     private var imageView: NSImageView!
     private var navigator: FileNavigator?
     private var currentImageSize: NSSize = .zero
+    private static let ciContext = CIContext()
 
     // MARK: - View Lifecycle
 
@@ -138,10 +140,41 @@ final class ViewController: NSViewController {
         displayCurrentImage()
     }
 
+    private func loadImage(from url: URL) -> NSImage? {
+        guard let source = CGImageSourceCreateWithURL(url as CFURL, nil) else { return nil }
+
+        // Animated/multi-frame formats (GIF, APNG, multi-page TIFF) need all frames loaded
+        if CGImageSourceGetCount(source) > 1 {
+            return NSImage(contentsOf: url)
+        }
+
+        let options: [CFString: Any] = [
+            kCGImageSourceShouldCacheImmediately: true,
+            kCGImageSourceShouldAllowFloat: true,
+        ]
+        guard var cgImage = CGImageSourceCreateImageAtIndex(source, 0, options as CFDictionary)
+        else { return nil }
+
+        // CGImageSourceCreateImageAtIndex returns raw unrotated pixels; apply EXIF orientation manually
+        if let props = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any],
+           let rawOrientation = props[kCGImagePropertyOrientation] as? UInt32,
+           let orientation = CGImagePropertyOrientation(rawValue: rawOrientation),
+           orientation != .up {
+            let ci = CIImage(cgImage: cgImage).oriented(orientation)
+            if let corrected = ViewController.ciContext.createCGImage(ci, from: ci.extent) {
+                cgImage = corrected
+            }
+        }
+
+        return NSImage(cgImage: cgImage, size: .zero)
+    }
+
     private func displayCurrentImage() {
         guard let navigator else { return }
 
-        guard let image = NSImage(contentsOf: navigator.currentURL) else {
+        guard let image = loadImage(from: navigator.currentURL) else {
+            currentImageSize = .zero
+            imageView.image = nil
             view.window?.title = navigator.currentURL.lastPathComponent
             return
         }
