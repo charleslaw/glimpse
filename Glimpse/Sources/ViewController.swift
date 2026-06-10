@@ -30,6 +30,26 @@ private final class ZoomableScrollView: NSScrollView {
     }
 }
 
+// MARK: - CenteringClipView
+
+/// NSClipView that centers the document view when it is smaller than the visible area,
+/// producing equal black gutters on each axis rather than pinning to a corner.
+private final class CenteringClipView: NSClipView {
+    override func constrainBoundsRect(_ proposedBounds: NSRect) -> NSRect {
+        var r = super.constrainBoundsRect(proposedBounds)
+        guard let doc = documentView else { return r }
+        let docFrame = doc.frame
+
+        if r.width > docFrame.width {
+            r.origin.x = floor((docFrame.width - r.width) / 2)
+        }
+        if r.height > docFrame.height {
+            r.origin.y = floor((docFrame.height - r.height) / 2)
+        }
+        return r
+    }
+}
+
 // MARK: - ViewController
 
 final class ViewController: NSViewController {
@@ -71,6 +91,10 @@ final class ViewController: NSViewController {
         imageView = NSImageView()
         imageView.imageScaling = .scaleNone
         imageView.translatesAutoresizingMaskIntoConstraints = false
+
+        let clipView = CenteringClipView()
+        clipView.drawsBackground = false
+        scrollView.contentView = clipView
         scrollView.documentView = imageView
 
         scrollView.zoomDidChange = { [weak self] in self?.refreshTitle() }
