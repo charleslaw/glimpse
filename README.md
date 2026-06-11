@@ -142,3 +142,14 @@ Glimpse is released under the **GNU General Public License v3.0**. See [LICENSE]
 ---
 
 <p align="center">Made with care by the Glimpse contributors</p>
+
+
+
+Add settings tab to top menu
+  It has an item that is “best fit” or "actual size” or “auto size"
+  When best fit, make the image fill the window as best as possible, meaning, maximize the size such that both the width and height fit within the window. When resizing the window resize the image. When going to the next image, if the window isn’t exactly the same size as the image, make the next image fit in the window
+  When actual size, show the image at full resolution 
+  When autosize, when showing a single image, do best fit, when going to the next image, 
+
+When the image does not fill the window, center the image
+
