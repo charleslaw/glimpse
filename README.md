@@ -66,6 +66,14 @@ See [Building](#building) below.
 
 The window title shows the current filename and position in the folder, e.g. `photo.jpg (7 of 42)`.
 
+Choose a default zoom mode in **Settings**. Your last selection is remembered between launches:
+
+- **Best Fit** fits images without enlarging them beyond 100%, and refits when you resize the window.
+- **Actual Size** opens images at 100%; scroll to see any parts outside the window.
+- **Scale to Fit** enlarges small images or shrinks large images to fit within 90% of the visible screen, preserving their proportions (up to 20× zoom). It reapplies when you open or navigate to an image.
+
+Manual zoom shortcuts work in every mode; `⌘0` returns the current image to 100%.
+
 ## Building
 
 **Requirements**

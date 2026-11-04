@@ -135,6 +135,7 @@ final class ViewController: NSViewController {
     func applyZoomMode() {
         guard currentImageSize.width > 0, currentImageSize.height > 0 else { return }
         applyZoom(imageSize: currentImageSize)
+        refreshTitle()
     }
 
     // MARK: - Zoom Actions
@@ -161,7 +162,7 @@ final class ViewController: NSViewController {
     @objc func zoomBestFit() {
         guard let contentSize = view.window?.contentView?.bounds.size,
               currentImageSize.width > 0, currentImageSize.height > 0 else { return }
-        let fitMag = min(contentSize.width  / currentImageSize.width,
+        let fitMag = min(1.0, contentSize.width  / currentImageSize.width,
                          contentSize.height / currentImageSize.height)
         setMagnification(fitMag)
     }
@@ -265,19 +266,11 @@ final class ViewController: NSViewController {
         case .actualSize:
             fitWindowActualSize(imageSize: imageSize)
         case .autoSize:
-            let screen = view.window?.screen ?? NSScreen.main
-            let screenFrame = screen?.visibleFrame ?? .zero
-            let fitsAt1x = imageSize.width  <= screenFrame.width  * 0.9 &&
-                           imageSize.height <= screenFrame.height * 0.9
-            if fitsAt1x {
-                fitWindowActualSize(imageSize: imageSize)
-            } else {
-                fitWindowBestFit(imageSize: imageSize)
-            }
+            fitWindowBestFit(imageSize: imageSize, allowUpscaling: true)
         }
     }
 
-    private func fitWindowBestFit(imageSize: NSSize) {
+    private func fitWindowBestFit(imageSize: NSSize, allowUpscaling: Bool = false) {
         guard let window = view.window,
               let screen = window.screen ?? NSScreen.main else { return }
         guard imageSize.width > 0, imageSize.height > 0 else { return }
@@ -286,7 +279,8 @@ final class ViewController: NSViewController {
         let maxWidth  = screenFrame.width  * 0.9
         let maxHeight = screenFrame.height * 0.9
 
-        let fitMag = min(1.0, maxWidth / imageSize.width, maxHeight / imageSize.height)
+        let maxMag = allowUpscaling ? scrollView.maxMagnification : 1.0
+        let fitMag = min(maxMag, maxWidth / imageSize.width, maxHeight / imageSize.height)
         let contentWidth  = max(imageSize.width  * fitMag, 200)
         let contentHeight = max(imageSize.height * fitMag, 150)
 

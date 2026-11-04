@@ -22,7 +22,7 @@ enum ZoomMode: String, CaseIterable {
         switch self {
         case .bestFit:    return "Best Fit"
         case .actualSize: return "Actual Size"
-        case .autoSize:   return "Auto Size"
+        case .autoSize:   return "Scale to Fit"
         }
     }
 }
