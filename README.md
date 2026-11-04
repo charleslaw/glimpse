@@ -57,6 +57,9 @@ See [Building](#building) below.
 | Open an image | Double-click (when set as default viewer), drag onto the Dock icon, or **File → Open…** (`⌘O`) |
 | Next image in folder | `→` arrow key |
 | Previous image in folder | `←` arrow key |
+| Zoom in | `⌘+` or `⌘=` |
+| Zoom out | `⌘−` |
+| Actual size (100%) | `⌘0` |
 | Close window | `⌘W` or `Esc` |
 | Full screen | `⌃⌘F` |
 | Resize window | Drag any edge or corner |

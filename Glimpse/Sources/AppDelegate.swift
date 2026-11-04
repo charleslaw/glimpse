@@ -113,6 +113,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         mainMenu.addItem(viewItem)
         let viewMenu = NSMenu(title: "View")
         viewItem.submenu = viewMenu
+        viewMenu.addItem(withTitle: "Zoom In",
+                         action: #selector(ViewController.zoomIn),
+                         keyEquivalent: "+")
+        // Also accept ⌘= so zooming in does not require Shift on a US keyboard.
+        let zoomInWithoutShift = viewMenu.addItem(withTitle: "Zoom In",
+                                                  action: #selector(ViewController.zoomIn),
+                                                  keyEquivalent: "=")
+        zoomInWithoutShift.isHidden = true
+        zoomInWithoutShift.allowsKeyEquivalentWhenHidden = true
+        viewMenu.addItem(withTitle: "Zoom Out",
+                         action: #selector(ViewController.zoomOut),
+                         keyEquivalent: "-")
+        viewMenu.addItem(withTitle: "Actual Size",
+                         action: #selector(ViewController.zoomActualSize),
+                         keyEquivalent: "0")
+        viewMenu.addItem(.separator())
         let fullScreen = viewMenu.addItem(withTitle: "Enter Full Screen",
                                           action: #selector(NSWindow.toggleFullScreen(_:)),
                                           keyEquivalent: "f")
