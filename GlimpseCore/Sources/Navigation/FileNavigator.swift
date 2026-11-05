@@ -2,7 +2,7 @@ import Foundation
 
 /// Maintains a sorted list of image siblings in the same folder as the
 /// currently-displayed file, and allows stepping forward/backward through them.
-public struct FileNavigator {
+public struct FileNavigator: Sendable {
 
     // MARK: - Properties
 
@@ -13,7 +13,10 @@ public struct FileNavigator {
     // MARK: - Init
 
     public init(currentURL: URL) {
-        self.currentURL = currentURL
+        self.currentURL = currentURL.isFileURL
+            ? currentURL.deletingLastPathComponent().resolvingSymlinksInPath()
+                .appendingPathComponent(currentURL.lastPathComponent)
+            : currentURL
         loadSiblings()
     }
 
@@ -42,6 +45,10 @@ public struct FileNavigator {
     // MARK: - Private
 
     private mutating func loadSiblings() {
+        guard currentURL.isFileURL else {
+            imageURLs = [currentURL]
+            return
+        }
         let directory = currentURL.deletingLastPathComponent()
 
         do {
@@ -52,9 +59,21 @@ public struct FileNavigator {
             )
 
             imageURLs = contents
-                .filter { ImageFormats.supportedExtensions.contains($0.pathExtension.lowercased()) }
+                .map {
+                    $0.deletingLastPathComponent().resolvingSymlinksInPath()
+                        .appendingPathComponent($0.lastPathComponent)
+                }
+                .filter {
+                    ImageFormats.supportedExtensions.contains($0.pathExtension.lowercased()) &&
+                    (try? $0.resolvingSymlinksInPath().resourceValues(forKeys: [.isRegularFileKey]))?.isRegularFile == true
+                }
                 .sorted { $0.lastPathComponent.localizedStandardCompare($1.lastPathComponent) == .orderedAscending }
 
+            // Preserve explicitly opened hidden or unrecognised-extension images.
+            if !imageURLs.contains(currentURL) {
+                imageURLs.append(currentURL)
+                imageURLs.sort { $0.lastPathComponent.localizedStandardCompare($1.lastPathComponent) == .orderedAscending }
+            }
             currentIndex = imageURLs.firstIndex(of: currentURL) ?? 0
 
         } catch {

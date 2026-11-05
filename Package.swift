@@ -5,5 +5,8 @@ let package = Package(
     name: "GlimpseCore",
     platforms: [.macOS(.v12)],
     products: [.library(name: "GlimpseCore", targets: ["GlimpseCore"])],
-    targets: [.target(name: "GlimpseCore", path: "GlimpseCore/Sources")]
+    targets: [
+        .target(name: "GlimpseCore", path: "GlimpseCore/Sources"),
+        .testTarget(name: "GlimpseCoreTests", dependencies: ["GlimpseCore"], path: "Tests/GlimpseCoreTests")
+    ]
 )

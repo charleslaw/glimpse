@@ -8,7 +8,9 @@ private extension NSToolbarItem.Identifier {
     static let bestFit    = NSToolbarItem.Identifier("bestFit")
 }
 
-final class ViewerWindowController: NSWindowController {
+@MainActor
+final class ViewerWindowController: NSWindowController, NSWindowDelegate {
+    var onClose: ((ViewerWindowController) -> Void)?
 
     // MARK: - Init
 
@@ -32,11 +34,17 @@ final class ViewerWindowController: NSWindowController {
         toolbar.displayMode = .iconOnly
         toolbar.allowsUserCustomization = false
         window.toolbarStyle = .unified
-        window.toolbar = toolbar
 
         self.init(window: window)
 
         toolbar.delegate = self
+        window.toolbar = toolbar
+        window.delegate = self
+    }
+
+    func windowWillClose(_ notification: Notification) {
+        (contentViewController as? ImageViewController)?.cancelLoading()
+        onClose?(self)
     }
 
     // MARK: - Public

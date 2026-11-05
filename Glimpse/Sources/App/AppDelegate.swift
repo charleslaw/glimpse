@@ -1,6 +1,7 @@
 import AppKit
 import GlimpseCore
 
+@MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private var windowControllers: [ViewerWindowController] = []
@@ -18,7 +19,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menuController = menus
         menus.install()
         if windowControllers.isEmpty {
-            DispatchQueue.main.async { self.openDocument(nil) }
+            DispatchQueue.main.async { [weak self] in
+                guard let self, self.windowControllers.isEmpty else { return }
+                self.openDocument(nil)
+            }
         }
     }
 
@@ -34,9 +38,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func application(_ sender: NSApplication, openFiles filenames: [String]) {
-        if let first = filenames.first {
-            openImage(at: URL(fileURLWithPath: first))
-        }
+        for filename in filenames { openImage(at: URL(fileURLWithPath: filename)) }
+        sender.reply(toOpenOrPrint: .success)
     }
 
     @IBAction func openDocument(_ sender: Any?) {
@@ -58,13 +61,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         wc.loadImage(at: url)
         windowControllers.append(wc)
 
-        NotificationCenter.default.addObserver(
-            forName: NSWindow.willCloseNotification,
-            object: wc.window,
-            queue: .main
-        ) { [weak self, weak wc] _ in
-            guard let wc else { return }
-            self?.windowControllers.removeAll { $0 === wc }
+        wc.onClose = { [weak self] closed in
+            self?.windowControllers.removeAll { $0 === closed }
         }
     }
 

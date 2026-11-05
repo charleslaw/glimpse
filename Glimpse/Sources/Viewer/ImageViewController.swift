@@ -1,6 +1,7 @@
 import AppKit
 import GlimpseCore
 
+@MainActor
 final class ImageViewController: NSViewController {
 
     // MARK: - Properties
@@ -9,9 +10,12 @@ final class ImageViewController: NSViewController {
     private let imageView = NSImageView()
     private var navigator: FileNavigator?
     private var currentImageSize: NSSize = .zero
-    private let decoder = ImageDecoder()
+    private let repository = ImageRepository()
+    private var imageTask: Task<Void, Never>?
+    private var requestID = UUID()
+    private let errorLabel = NSTextField(wrappingLabelWithString: "")
     private let preferences: ZoomPreferences
-    private var windowResizeObserver: NSObjectProtocol?
+    private var windowResizeObserver: NotificationObservation?
 
     init(preferences: ZoomPreferences) {
         self.preferences = preferences
@@ -45,7 +49,17 @@ final class ImageViewController: NSViewController {
         ])
 
         imageView.imageScaling = .scaleNone
-        imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.animates = true
+        errorLabel.isHidden = true
+        errorLabel.textColor = .secondaryLabelColor
+        errorLabel.alignment = .center
+        errorLabel.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(errorLabel)
+        NSLayoutConstraint.activate([
+            errorLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            errorLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            errorLabel.widthAnchor.constraint(lessThanOrEqualTo: contentView.widthAnchor, multiplier: 0.8),
+        ])
 
         let clipView = CenteringClipView()
         clipView.drawsBackground = false
@@ -64,27 +78,22 @@ final class ImageViewController: NSViewController {
     override func viewDidAppear() {
         super.viewDidAppear()
         view.window?.makeFirstResponder(view)
-        windowResizeObserver = NotificationCenter.default.addObserver(
-            forName: NSWindow.didResizeNotification,
-            object: view.window,
-            queue: .main
-        ) { [weak self] _ in
-            guard let self, self.preferences.mode == .bestFit else { return }
-            self.zoomBestFit()
+        windowResizeObserver = NotificationObservation(name: NSWindow.didResizeNotification, object: view.window) { [weak self] in
+            Task { @MainActor [weak self] in
+                guard let self, self.preferences.mode == .bestFit else { return }
+                self.zoomBestFit()
+            }
         }
     }
 
     deinit {
-        if let observer = windowResizeObserver {
-            NotificationCenter.default.removeObserver(observer)
-        }
+        imageTask?.cancel()
     }
 
     // MARK: - Public
 
     func loadImage(at url: URL) {
-        navigator = FileNavigator(currentURL: url)
-        displayCurrentImage()
+        requestImage(at: url, includeNavigation: true)
     }
 
     func applyZoomMode() {
@@ -93,10 +102,16 @@ final class ImageViewController: NSViewController {
         refreshTitle()
     }
 
+    func cancelLoading() {
+        imageTask?.cancel()
+        imageTask = nil
+        requestID = UUID()
+    }
+
     // MARK: - Zoom Actions
 
     @objc private func handleDoubleClick(_ recognizer: NSClickGestureRecognizer) {
-        let location = recognizer.location(in: scrollView)
+        let location = recognizer.location(in: scrollView.contentView)
         let newMag = min(scrollView.maxMagnification, scrollView.magnification * 2.0)
         scrollView.setMagnification(newMag, centeredAt: location)
         refreshTitle()
@@ -118,6 +133,7 @@ final class ImageViewController: NSViewController {
         view.layoutSubtreeIfNeeded()
         guard let scale = ImageSizing.fitMagnification(image: currentImageSize,
                                                        viewport: scrollView.contentSize) else { return }
+        scrollView.minMagnification = min(0.05, scale)
         setMagnification(scale)
     }
 
@@ -151,21 +167,57 @@ final class ImageViewController: NSViewController {
     }
 
     private func displayCurrentImage() {
-        guard let navigator else { return }
+        guard let url = navigator?.currentURL else { return }
+        requestImage(at: url)
+    }
 
-        guard let image = decoder.decode(navigator.currentURL) else {
-            currentImageSize = .zero
-            imageView.image = nil
-            view.window?.title = navigator.currentURL.lastPathComponent
-            return
+    private func requestImage(at url: URL, includeNavigation: Bool = false) {
+        cancelLoading()
+        let id = requestID
+        currentImageSize = .zero
+        imageView.image = nil
+        imageView.frame = .zero
+        errorLabel.isHidden = true
+        view.window?.title = "\(url.lastPathComponent) — Loading…"
+        let repository = repository
+        imageTask = Task { @MainActor [weak self] in
+            do {
+                let loaded = try await repository.load(url, includeNavigation: includeNavigation)
+                try Task.checkCancellation()
+                guard let self, self.requestID == id else { return }
+                if let navigator = loaded.navigator { self.navigator = navigator }
+                switch loaded.image {
+                case .success(let image): self.present(image)
+                case .failure(let error): self.presentFailure(error, at: url)
+                }
+                self.imageTask = nil
+            } catch is CancellationError {
+                // A newer selection or a closed window owns the UI now.
+            } catch {
+                guard let self, self.requestID == id else { return }
+                self.presentFailure(.unsupportedOrCorrupt, at: url)
+                self.imageTask = nil
+            }
         }
+    }
 
+    private func present(_ image: NSImage) {
         imageView.image = image
         currentImageSize = image.size
         imageView.frame = NSRect(origin: .zero, size: image.size)
-
+        errorLabel.isHidden = true
         applyZoom(imageSize: image.size)
         refreshTitle()
+        view.window?.makeFirstResponder(view)
+    }
+
+    private func presentFailure(_ error: ImageLoadingError, at url: URL) {
+        currentImageSize = .zero
+        imageView.image = nil
+        imageView.frame = .zero
+        errorLabel.stringValue = "Cannot Open Image\n\(error.localizedDescription)"
+        errorLabel.isHidden = false
+        view.window?.title = url.lastPathComponent
         view.window?.makeFirstResponder(view)
     }
 
@@ -195,6 +247,7 @@ final class ImageViewController: NSViewController {
         let origin = NSPoint(x: screenFrame.midX - frameSize.width / 2,
                              y: screenFrame.midY - frameSize.height / 2)
         window.setFrame(NSRect(origin: origin, size: frameSize), display: true)
-        scrollView.magnification = layout.magnification
+        scrollView.minMagnification = min(0.05, layout.magnification)
+        setMagnification(layout.magnification)
     }
 }

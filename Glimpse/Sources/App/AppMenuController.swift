@@ -1,6 +1,7 @@
 import AppKit
 import GlimpseCore
 
+@MainActor
 final class AppMenuController: NSObject {
     private let preferences: ZoomPreferences
     private let onOpen: () -> Void

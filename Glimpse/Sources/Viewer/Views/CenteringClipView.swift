@@ -1,5 +1,6 @@
 import AppKit
 
+@MainActor
 final class CenteringClipView: NSClipView {
     override func constrainBoundsRect(_ proposedBounds: NSRect) -> NSRect {
         var r = super.constrainBoundsRect(proposedBounds)
