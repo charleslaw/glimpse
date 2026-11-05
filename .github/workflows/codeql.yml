@@ -1,0 +1,51 @@
+name: CodeQL Security Review
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    # Private repositories need an eligible GitHub Code Security entitlement.
+    # Set ENABLE_CODEQL=true only after confirming that entitlement.
+    if: github.event.repository.private == false || vars.ENABLE_CODEQL == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: swift
+            os: macos-15-intel
+            mode: manual
+          - language: actions
+            os: ubuntu-24.04
+            mode: none
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: github/codeql-action/init@33d7b85da1a04171e211befe2c739303b9a4c066 # v4
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.mode }}
+          queries: security-extended
+      - name: Build Swift app for analysis
+        if: matrix.language == 'swift'
+        run: >-
+          xcodebuild build -project Glimpse.xcodeproj -scheme Glimpse
+          -configuration Debug -destination 'platform=macOS'
+          -derivedDataPath build/CodeQLDerivedData
+          CODE_SIGN_IDENTITY= CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
+      - uses: github/codeql-action/analyze@33d7b85da1a04171e211befe2c739303b9a4c066 # v4
+        with:
+          category: /language:${{ matrix.language }}
