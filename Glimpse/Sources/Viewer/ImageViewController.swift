@@ -15,12 +15,14 @@ final class ImageViewController: NSViewController {
     private var requestID = UUID()
     private let errorLabel = NSTextField(wrappingLabelWithString: "")
     private let preferences: ZoomPreferences
+    private let backgroundPreferences: BackgroundPreferences
     private var windowResizeObserver: NotificationObservation?
 
     var currentImageURL: URL? { navigator?.currentURL }
 
-    init(preferences: ZoomPreferences) {
+    init(preferences: ZoomPreferences, backgroundPreferences: BackgroundPreferences) {
         self.preferences = preferences
+        self.backgroundPreferences = backgroundPreferences
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -30,16 +32,15 @@ final class ImageViewController: NSViewController {
 
     override func loadView() {
         let contentView = ImageContentView(frame: NSRect(x: 0, y: 0, width: 800, height: 600))
-        contentView.wantsLayer = true
-        contentView.layer?.backgroundColor = NSColor.black.cgColor
+        contentView.backgroundStyle = backgroundPreferences.style
+        contentView.customColor = backgroundPreferences.customColor
 
         scrollView.hasHorizontalScroller = true
         scrollView.hasVerticalScroller = true
         scrollView.allowsMagnification = true
         scrollView.minMagnification = 0.05
         scrollView.maxMagnification = 20.0
-        scrollView.backgroundColor = .black
-        scrollView.drawsBackground = true
+        scrollView.drawsBackground = false
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(scrollView)
 
@@ -75,6 +76,7 @@ final class ImageViewController: NSViewController {
         scrollView.addGestureRecognizer(doubleClick)
 
         view = contentView
+        applyBackground()
     }
 
     override func viewDidAppear() {
@@ -102,6 +104,16 @@ final class ImageViewController: NSViewController {
         guard currentImageSize.width > 0, currentImageSize.height > 0 else { return }
         applyZoom(imageSize: currentImageSize)
         refreshTitle()
+    }
+
+    func applyBackground() {
+        guard let content = view as? ImageContentView else { return }
+        content.backgroundStyle = backgroundPreferences.style
+        content.customColor = backgroundPreferences.customColor
+        let color = backgroundPreferences.style.baseColor(custom: backgroundPreferences.customColor)
+        view.window?.backgroundColor = color.nsColor
+        let brightness = Double(color.red) * 0.2126 + Double(color.green) * 0.7152 + Double(color.blue) * 0.0722
+        errorLabel.textColor = brightness >= 128 ? .darkGray : .lightGray
     }
 
     func cancelLoading() {

@@ -25,7 +25,7 @@
 - **Best-fit display** — images open scaled to fit your screen without cropping
 - **Folder navigation** — press `←` / `→` to step through every image in the same folder, sorted naturally by filename
 - **Multi-format** — JPEG, PNG, GIF, BMP, TIFF, HEIC, HEIF, WebP, JPEG 2000, AVIF, and more
-- **Zero clutter** — a single resizable window, black background, nothing else
+- **Simple viewing** — a resizable image window with a subtle dark-gray pattern or your preferred background color
 - **"Open With" integration** — set Glimpse as the default viewer for any image type in Finder
 - **Full-screen support** — `⌃⌘F` to go full screen
 - **Quick navigation** — bounded caching and adjacent-image preloading
@@ -62,6 +62,8 @@ The title bar also has Zoom Out, Zoom In, Actual Size and Best Fit buttons. Choo
 - **Scale to Fit** enlarges small images or shrinks large images to fit within 90% of the visible screen, preserving their proportions (up to 20× zoom). It reapplies when you open or navigate to an image.
 
 Manual zoom shortcuts work in every mode; `⌘0` returns the current image to 100%.
+
+Choose **Settings → Background** for **Dark Gray Pattern** (the default), **Black**, **White**, **Very Dark Gray**, or **Custom…**. Custom accepts red, green and blue values from 0–255 and includes the macOS color picker. Click Apply to update all image windows. Your selection and custom RGB color are remembered between launches. Backgrounds show around images and through transparent pixels; image files are not modified.
 
 ## Building
 

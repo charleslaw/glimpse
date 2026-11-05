@@ -6,15 +6,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private var windowControllers: [ViewerWindowController] = []
     private let preferences = ZoomPreferences()
+    private let backgroundPreferences = BackgroundPreferences()
     private var menuController: AppMenuController?
 
     // MARK: - Lifecycle
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         let menus = AppMenuController(preferences: preferences,
+                                      backgroundPreferences: backgroundPreferences,
                                       onOpen: { [weak self] in self?.openDocument(nil) },
                                       onZoomModeChanged: { [weak self] in
                                           self?.windowControllers.forEach { $0.applyZoomMode() }
+                                      },
+                                      onBackgroundChanged: { [weak self] in
+                                          self?.windowControllers.forEach { $0.applyBackground() }
                                       })
         menuController = menus
         menus.install()
@@ -60,7 +65,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     // MARK: - Private
 
     private func openImage(at url: URL) {
-        let wc = ViewerWindowController(preferences: preferences)
+        let wc = ViewerWindowController(preferences: preferences, backgroundPreferences: backgroundPreferences)
         wc.showWindow(nil)
         wc.loadImage(at: url)
         windowControllers.append(wc)

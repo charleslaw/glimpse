@@ -15,7 +15,7 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate {
 
     // MARK: - Init
 
-    convenience init(preferences: ZoomPreferences) {
+    convenience init(preferences: ZoomPreferences, backgroundPreferences: BackgroundPreferences) {
         let window = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 800, height: 600),
             styleMask: [.titled, .closable, .miniaturizable, .resizable],
@@ -23,12 +23,12 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate {
             defer: false
         )
         window.title = "Glimpse"
-        window.backgroundColor = .black
+        window.backgroundColor = backgroundPreferences.style.baseColor(custom: backgroundPreferences.customColor).nsColor
         window.minSize = NSSize(width: 200, height: 150)
         window.isReleasedWhenClosed = false
         window.center()
 
-        let vc = ImageViewController(preferences: preferences)
+        let vc = ImageViewController(preferences: preferences, backgroundPreferences: backgroundPreferences)
         window.contentViewController = vc
 
         let toolbar = NSToolbar(identifier: "MainToolbar")
@@ -63,6 +63,10 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate {
 
     func applyZoomMode() {
         (contentViewController as? ImageViewController)?.applyZoomMode()
+    }
+
+    func applyBackground() {
+        (contentViewController as? ImageViewController)?.applyBackground()
     }
 }
 

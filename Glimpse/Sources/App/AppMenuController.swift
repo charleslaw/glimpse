@@ -8,12 +8,15 @@ final class AppMenuController: NSObject {
     private let onZoomModeChanged: () -> Void
     private var zoomModeItems: [ZoomMode: NSMenuItem] = [:]
     private let actionsController: ActionsMenuController
+    private let backgroundController: BackgroundMenuController
 
-    init(preferences: ZoomPreferences, onOpen: @escaping () -> Void,
-         onZoomModeChanged: @escaping () -> Void) {
+    init(preferences: ZoomPreferences, backgroundPreferences: BackgroundPreferences,
+         onOpen: @escaping () -> Void, onZoomModeChanged: @escaping () -> Void,
+         onBackgroundChanged: @escaping () -> Void) {
         self.preferences = preferences
         self.onOpen = onOpen
         self.onZoomModeChanged = onZoomModeChanged
+        self.backgroundController = BackgroundMenuController(preferences: backgroundPreferences, onChanged: onBackgroundChanged)
         self.actionsController = ActionsMenuController {
             ((NSApp.keyWindow ?? NSApp.mainWindow)?.contentViewController as? ImageViewController)?.currentImageURL
         }
@@ -117,6 +120,9 @@ final class AppMenuController: NSObject {
             settingsMenu.addItem(item)
             zoomModeItems[mode] = item
         }
+        settingsMenu.addItem(.separator())
+        let backgroundItem = settingsMenu.addItem(withTitle: "Background", action: nil, keyEquivalent: "")
+        backgroundItem.submenu = backgroundController.menu
 
         let actionsItem = NSMenuItem()
         mainMenu.addItem(actionsItem)

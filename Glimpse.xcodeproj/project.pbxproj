@@ -37,6 +37,10 @@
         ADF4F669B1A16B361DA84F02 /* ImageMetadataReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40145F79DFA743BA2F7A7D69 /* ImageMetadataReader.swift */; };
         6B228BA7C65EA690D63550A0 /* ImageDecodeWorker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 959C45EA5EE94437EED15F17 /* ImageDecodeWorker.swift */; };
         181D11D344AB1D05E85A5EF7 /* ImageMemoryCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F31408F53237FA9714CC8A3 /* ImageMemoryCache.swift */; };
+        3A448263DC46ED2FC24E4B3A /* BackgroundColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FF92A4A9D352B275FF71C09 /* BackgroundColor.swift */; };
+        4500D2F0F71051EEAE5BB4D4 /* BackgroundMenuController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B75910F0A57C8F39E9E596B0 /* BackgroundMenuController.swift */; };
+        6A9EF326CC7CEA03F0EE401C /* CustomBackgroundWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B249F6CF0759A62AE49EFF53 /* CustomBackgroundWindowController.swift */; };
+        F8E4ABD0F7E112B31C3DDF44 /* BackgroundPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = C749C0E074424A2453BB645C /* BackgroundPreferences.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -73,6 +77,10 @@
         40145F79DFA743BA2F7A7D69 /* ImageMetadataReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageMetadataReader.swift; sourceTree = "<group>"; };
         959C45EA5EE94437EED15F17 /* ImageDecodeWorker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageDecodeWorker.swift; sourceTree = "<group>"; };
         1F31408F53237FA9714CC8A3 /* ImageMemoryCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageMemoryCache.swift; sourceTree = "<group>"; };
+        3FF92A4A9D352B275FF71C09 /* BackgroundColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundColor.swift; sourceTree = "<group>"; };
+        B75910F0A57C8F39E9E596B0 /* BackgroundMenuController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundMenuController.swift; sourceTree = "<group>"; };
+        B249F6CF0759A62AE49EFF53 /* CustomBackgroundWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomBackgroundWindowController.swift; sourceTree = "<group>"; };
+        C749C0E074424A2453BB645C /* BackgroundPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundPreferences.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -128,6 +136,7 @@
 		83CBBA0F1A601CBA00E9B192 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+                D9E3897901DC68CC50FDF3A6 /* Appearance */,
                 0870C19CE8B586A20471C8E5 /* Metadata */,
                 814D256A1B2E3D1C34B258F2 /* Actions */,
 				1C48CE29E4E135EE62951B22 /* App */,
@@ -190,6 +199,7 @@
 			E471ED2FAD5DA2AC6CD66C3A /* FileNavigator.swift */,
 		); path = "Navigation"; sourceTree = "<group>"; };
 		BB684298F7146180CB3D00EE /* Preferences */ = {isa = PBXGroup; children = (
+                C749C0E074424A2453BB645C /* BackgroundPreferences.swift */,
 			6B5DF970C2BA2F0A52D71940 /* ZoomMode.swift */,
 			180342DA15DE6366A0D3DFA5 /* ZoomPreferences.swift */,
 		); path = "Preferences"; sourceTree = "<group>"; };
@@ -209,6 +219,10 @@
                 40145F79DFA743BA2F7A7D69 /* ImageMetadataReader.swift */,
                 3277908A0C4C1CB7855D63A7 /* ImageMetadata.swift */,
                 F937B1A62B6DF0899949B733 /* ImageContainerMetadata.swift */,); path = Metadata; sourceTree = "<group>"; };
+        D9E3897901DC68CC50FDF3A6 /* Appearance */ = {isa = PBXGroup; children = (
+                B249F6CF0759A62AE49EFF53 /* CustomBackgroundWindowController.swift */,
+                B75910F0A57C8F39E9E596B0 /* BackgroundMenuController.swift */,
+                3FF92A4A9D352B275FF71C09 /* BackgroundColor.swift */,); path = Appearance; sourceTree = "<group>"; };
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -291,6 +305,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+                6A9EF326CC7CEA03F0EE401C /* CustomBackgroundWindowController.swift in Sources */,
+                4500D2F0F71051EEAE5BB4D4 /* BackgroundMenuController.swift in Sources */,
+                3A448263DC46ED2FC24E4B3A /* BackgroundColor.swift in Sources */,
                 AEF189EFEA8AF5FA549C1B3E /* MetadataWindowController.swift in Sources */,
                 60F1CA6DC30950E5BB30EC4E /* ActionsMenuController.swift in Sources */,
                 F366E820E51DDAA25648ED27 /* ActionRunner.swift in Sources */,
@@ -307,6 +324,7 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
         CF897B3B222D09A51B22A0AF = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (
+                F8E4ABD0F7E112B31C3DDF44 /* BackgroundPreferences.swift in Sources */,
                 181D11D344AB1D05E85A5EF7 /* ImageMemoryCache.swift in Sources */,
                 6B228BA7C65EA690D63550A0 /* ImageDecodeWorker.swift in Sources */,
                 ADF4F669B1A16B361DA84F02 /* ImageMetadataReader.swift in Sources */,
