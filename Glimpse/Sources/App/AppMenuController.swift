@@ -1,76 +1,32 @@
-import Cocoa
+import AppKit
+import GlimpseCore
 
-final class AppDelegate: NSObject, NSApplicationDelegate {
-
-    private var windowControllers: [WindowController] = []
+final class AppMenuController: NSObject {
+    private let preferences: ZoomPreferences
+    private let onOpen: () -> Void
+    private let onZoomModeChanged: () -> Void
     private var zoomModeItems: [ZoomMode: NSMenuItem] = [:]
 
-    // MARK: - Lifecycle
-
-    func applicationDidFinishLaunching(_ notification: Notification) {
-        setupMenuBar()
-        if windowControllers.isEmpty {
-            DispatchQueue.main.async { self.openDocument(nil) }
-        }
+    init(preferences: ZoomPreferences, onOpen: @escaping () -> Void,
+         onZoomModeChanged: @escaping () -> Void) {
+        self.preferences = preferences
+        self.onOpen = onOpen
+        self.onZoomModeChanged = onZoomModeChanged
     }
 
-    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
-        true
-    }
-
-    // MARK: - File Opening
-
-    func application(_ sender: NSApplication, openFile filename: String) -> Bool {
-        openImage(at: URL(fileURLWithPath: filename))
-        return true
-    }
-
-    func application(_ sender: NSApplication, openFiles filenames: [String]) {
-        if let first = filenames.first {
-            openImage(at: URL(fileURLWithPath: first))
-        }
-    }
-
-    @IBAction func openDocument(_ sender: Any?) {
-        let panel = NSOpenPanel()
-        panel.title = "Open Image"
-        panel.canChooseFiles = true
-        panel.canChooseDirectories = false
-        panel.allowsMultipleSelection = false
-        panel.allowedContentTypes = ImageLoader.supportedContentTypes
-        guard panel.runModal() == .OK, let url = panel.url else { return }
-        openImage(at: url)
-    }
-
-    // MARK: - Private
-
-    private func openImage(at url: URL) {
-        let wc = WindowController()
-        wc.showWindow(nil)
-        wc.loadImage(at: url)
-        windowControllers.append(wc)
-
-        NotificationCenter.default.addObserver(
-            forName: NSWindow.willCloseNotification,
-            object: wc.window,
-            queue: .main
-        ) { [weak self, weak wc] _ in
-            guard let wc else { return }
-            self?.windowControllers.removeAll { $0 === wc }
-        }
-    }
+    @objc private func openDocument(_ sender: Any?) { onOpen() }
 
     @objc private func setZoomMode(_ sender: NSMenuItem) {
         guard let raw = sender.representedObject as? String,
               let mode = ZoomMode(rawValue: raw) else { return }
-        ZoomMode.current = mode
-        for (m, item) in zoomModeItems {
-            item.state = m == mode ? .on : .off
+        preferences.mode = mode
+        for (candidate, item) in zoomModeItems {
+            item.state = candidate == mode ? .on : .off
         }
-        windowControllers.forEach { $0.applyZoomMode() }
+        onZoomModeChanged()
     }
 
-    private func setupMenuBar() {
+    func install() {
         let mainMenu = NSMenu()
         NSApp.mainMenu = mainMenu
 
@@ -100,9 +56,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         mainMenu.addItem(fileItem)
         let fileMenu = NSMenu(title: "File")
         fileItem.submenu = fileMenu
-        fileMenu.addItem(withTitle: "Open…",
+        let openItem = fileMenu.addItem(withTitle: "Open…",
                          action: #selector(openDocument(_:)),
                          keyEquivalent: "o")
+        openItem.target = self
         fileMenu.addItem(.separator())
         fileMenu.addItem(withTitle: "Close Window",
                          action: #selector(NSWindow.performClose(_:)),
@@ -114,19 +71,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let viewMenu = NSMenu(title: "View")
         viewItem.submenu = viewMenu
         viewMenu.addItem(withTitle: "Zoom In",
-                         action: #selector(ViewController.zoomIn),
+                         action: #selector(ImageViewController.zoomIn),
                          keyEquivalent: "+")
         // Also accept ⌘= so zooming in does not require Shift on a US keyboard.
         let zoomInWithoutShift = viewMenu.addItem(withTitle: "Zoom In",
-                                                  action: #selector(ViewController.zoomIn),
+                                                  action: #selector(ImageViewController.zoomIn),
                                                   keyEquivalent: "=")
         zoomInWithoutShift.isHidden = true
         zoomInWithoutShift.allowsKeyEquivalentWhenHidden = true
         viewMenu.addItem(withTitle: "Zoom Out",
-                         action: #selector(ViewController.zoomOut),
+                         action: #selector(ImageViewController.zoomOut),
                          keyEquivalent: "-")
         viewMenu.addItem(withTitle: "Actual Size",
-                         action: #selector(ViewController.zoomActualSize),
+                         action: #selector(ImageViewController.zoomActualSize),
                          keyEquivalent: "0")
         viewMenu.addItem(.separator())
         let fullScreen = viewMenu.addItem(withTitle: "Enter Full Screen",
@@ -143,8 +100,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             let item = NSMenuItem(title: mode.menuTitle,
                                   action: #selector(setZoomMode(_:)),
                                   keyEquivalent: "")
+            item.target = self
             item.representedObject = mode.rawValue
-            item.state = mode == ZoomMode.current ? .on : .off
+            item.state = mode == preferences.mode ? .on : .off
             settingsMenu.addItem(item)
             zoomModeItems[mode] = item
         }

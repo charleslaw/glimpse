@@ -1,10 +1,10 @@
 import UniformTypeIdentifiers
 
 /// Central registry of image formats Glimpse understands.
-enum ImageLoader {
+public enum ImageFormats {
 
     /// File extensions used by `FileNavigator` to filter directory contents.
-    static let supportedExtensions: Set<String> = [
+    public static let supportedExtensions: Set<String> = [
         "jpg", "jpeg", "png", "gif", "bmp",
         "tiff", "tif", "heic", "heif", "webp",
         "jp2", "jfif", "avif", "ico",
@@ -13,7 +13,7 @@ enum ImageLoader {
     /// Concrete UTTypes used to filter the NSOpenPanel.
     /// Uses string-literal identifiers for formats whose static UTType members
     /// were added late or vary across SDK versions.
-    static var supportedContentTypes: [UTType] {
+    public static var supportedContentTypes: [UTType] {
         let identifiers = [
             "public.jpeg",
             "public.png",

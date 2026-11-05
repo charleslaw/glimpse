@@ -7,28 +7,44 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		83CBBA071A601CBA00E9B192 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBB9F81A601CBA00E9B192 /* AppDelegate.swift */; };
-		83CBBA081A601CBA00E9B192 /* WindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBB9F91A601CBA00E9B192 /* WindowController.swift */; };
-		83CBBA091A601CBA00E9B192 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA001A601CBA00E9B192 /* ViewController.swift */; };
-		83CBBA0A1A601CBA00E9B192 /* FileNavigator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA011A601CBA00E9B192 /* FileNavigator.swift */; };
-		83CBBA0B1A601CBA00E9B192 /* ImageLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA021A601CBA00E9B192 /* ImageLoader.swift */; };
 		83CBBA0C1A601CBA00E9B192 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 83CBBA031A601CBA00E9B192 /* Assets.xcassets */; };
-		83CBBA1D1A601CBA00E9B192 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA1E1A601CBA00E9B192 /* main.swift */; };
-		CC6CC2342FDA8ABA00C2DEC7 /* ZoomMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC6CC2332FDA8ABA00C2DEC7 /* ZoomMode.swift */; };
+		75A29E53D8539252B3301E6E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B727B57B7835A5DFC5EFC475 /* AppDelegate.swift */; };
+		4D499A97523C21E27039445D /* AppMenuController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF8558024A85A48FB9F53026 /* AppMenuController.swift */; };
+		D1558FAFE4F2708C191E4E18 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 953E10153F6E9CD1483F4BC4 /* main.swift */; };
+		A8662D368E287F25ADE55547 /* ImageViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD98DA1580AE7664F4231CBD /* ImageViewController.swift */; };
+		56B914ED3EFC4DB76BC91AEB /* ViewerWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8207C62E8CD4646E7142692A /* ViewerWindowController.swift */; };
+		EC7593AA9BA3FEE82D14BBC4 /* CenteringClipView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D253FE056B0910F7A13DBAED /* CenteringClipView.swift */; };
+		868F456DBC272B9C18BDD0C4 /* ImageContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49A9E0E787BFF52DCEBB21EB /* ImageContentView.swift */; };
+		BE015422AE466A881F295429 /* ZoomableScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8395722CC5D361573FC56A31 /* ZoomableScrollView.swift */; };
+		1C25D3719CB905525B1D275B /* GlimpseCore in Frameworks */ = {isa = PBXBuildFile; fileRef = 3821C1E3B67DECE8AEBA19CB /* GlimpseCore.framework */; };
+		88423BA93EB6C1156F8FEB0C /* ImageDecoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19B6BBFC485F5ABEC5F2171B /* ImageDecoder.swift */; };
+		22958013978F4786150C71FA /* ImageFormats.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42E49A19A52FFDF1F4046205 /* ImageFormats.swift */; };
+		9E97EF798180C6923861E065 /* ImageSizing.swift in Sources */ = {isa = PBXBuildFile; fileRef = B51169DC80668971C41F3166 /* ImageSizing.swift */; };
+		4621FE8847A3028318D066BE /* FileNavigator.swift in Sources */ = {isa = PBXBuildFile; fileRef = E471ED2FAD5DA2AC6CD66C3A /* FileNavigator.swift */; };
+		C40A29C4F28FE65B08C363CE /* ZoomMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B5DF970C2BA2F0A52D71940 /* ZoomMode.swift */; };
+		FD24D445EF095E038D9FD637 /* ZoomPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 180342DA15DE6366A0D3DFA5 /* ZoomPreferences.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		83CBB9F81A601CBA00E9B192 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		83CBB9F91A601CBA00E9B192 /* WindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowController.swift; sourceTree = "<group>"; };
-		83CBBA001A601CBA00E9B192 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
-		83CBBA011A601CBA00E9B192 /* FileNavigator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileNavigator.swift; sourceTree = "<group>"; };
-		83CBBA021A601CBA00E9B192 /* ImageLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageLoader.swift; sourceTree = "<group>"; };
 		83CBBA031A601CBA00E9B192 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		83CBBA041A601CBA00E9B192 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		83CBBA051A601CBA00E9B192 /* Glimpse.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Glimpse.entitlements; sourceTree = "<group>"; };
 		83CBBA061A601CBA00E9B192 /* Glimpse.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Glimpse.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		83CBBA1E1A601CBA00E9B192 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
-		CC6CC2332FDA8ABA00C2DEC7 /* ZoomMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZoomMode.swift; sourceTree = "<group>"; };
+		B727B57B7835A5DFC5EFC475 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		AF8558024A85A48FB9F53026 /* AppMenuController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppMenuController.swift; sourceTree = "<group>"; };
+		953E10153F6E9CD1483F4BC4 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
+		CD98DA1580AE7664F4231CBD /* ImageViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageViewController.swift; sourceTree = "<group>"; };
+		8207C62E8CD4646E7142692A /* ViewerWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewerWindowController.swift; sourceTree = "<group>"; };
+		D253FE056B0910F7A13DBAED /* CenteringClipView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CenteringClipView.swift; sourceTree = "<group>"; };
+		49A9E0E787BFF52DCEBB21EB /* ImageContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageContentView.swift; sourceTree = "<group>"; };
+		8395722CC5D361573FC56A31 /* ZoomableScrollView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZoomableScrollView.swift; sourceTree = "<group>"; };
+		19B6BBFC485F5ABEC5F2171B /* ImageDecoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageDecoder.swift; sourceTree = "<group>"; };
+		42E49A19A52FFDF1F4046205 /* ImageFormats.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageFormats.swift; sourceTree = "<group>"; };
+		B51169DC80668971C41F3166 /* ImageSizing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageSizing.swift; sourceTree = "<group>"; };
+		E471ED2FAD5DA2AC6CD66C3A /* FileNavigator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileNavigator.swift; sourceTree = "<group>"; };
+		6B5DF970C2BA2F0A52D71940 /* ZoomMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZoomMode.swift; sourceTree = "<group>"; };
+		180342DA15DE6366A0D3DFA5 /* ZoomPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZoomPreferences.swift; sourceTree = "<group>"; };
+		3821C1E3B67DECE8AEBA19CB /* GlimpseCore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = GlimpseCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -36,9 +52,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1C25D3719CB905525B1D275B /* GlimpseCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+        98E3FBA630EC9148D17FA8F3 = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -46,6 +64,7 @@
 			isa = PBXGroup;
 			children = (
 				83CBBA0E1A601CBA00E9B192 /* Glimpse */,
+				D100E67DCD2BBBF48A4B2C94 /* GlimpseCore */,
 				83CBBA121A601CBA00E9B192 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -61,28 +80,6 @@
 			path = Glimpse;
 			sourceTree = "<group>";
 		};
-		83CBBA0F1A601CBA00E9B192 /* Sources */ = {
-			isa = PBXGroup;
-			children = (
-				CC6CC2332FDA8ABA00C2DEC7 /* ZoomMode.swift */,
-				83CBBA1E1A601CBA00E9B192 /* main.swift */,
-				83CBB9F81A601CBA00E9B192 /* AppDelegate.swift */,
-				83CBB9F91A601CBA00E9B192 /* WindowController.swift */,
-				83CBBA001A601CBA00E9B192 /* ViewController.swift */,
-				83CBBA101A601CBA00E9B192 /* Common */,
-			);
-			path = Sources;
-			sourceTree = "<group>";
-		};
-		83CBBA101A601CBA00E9B192 /* Common */ = {
-			isa = PBXGroup;
-			children = (
-				83CBBA011A601CBA00E9B192 /* FileNavigator.swift */,
-				83CBBA021A601CBA00E9B192 /* ImageLoader.swift */,
-			);
-			path = Common;
-			sourceTree = "<group>";
-		};
 		83CBBA111A601CBA00E9B192 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
@@ -95,10 +92,71 @@
 			isa = PBXGroup;
 			children = (
 				83CBBA061A601CBA00E9B192 /* Glimpse.app */,
+				3821C1E3B67DECE8AEBA19CB /* GlimpseCore.framework */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
+		83CBBA0F1A601CBA00E9B192 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				1C48CE29E4E135EE62951B22 /* App */,
+				EFDFE9BBC7F2E61C5CF16CFF /* Viewer */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		1C48CE29E4E135EE62951B22 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				B727B57B7835A5DFC5EFC475 /* AppDelegate.swift */,
+				AF8558024A85A48FB9F53026 /* AppMenuController.swift */,
+				953E10153F6E9CD1483F4BC4 /* main.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		EFDFE9BBC7F2E61C5CF16CFF /* Viewer */ = {
+			isa = PBXGroup;
+			children = (
+				CD98DA1580AE7664F4231CBD /* ImageViewController.swift */,
+				8207C62E8CD4646E7142692A /* ViewerWindowController.swift */,
+				E9E0ED83DAF4EF5BA31CC543 /* Views */,
+			);
+			path = Viewer;
+			sourceTree = "<group>";
+		};
+		E9E0ED83DAF4EF5BA31CC543 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				D253FE056B0910F7A13DBAED /* CenteringClipView.swift */,
+				49A9E0E787BFF52DCEBB21EB /* ImageContentView.swift */,
+				8395722CC5D361573FC56A31 /* ZoomableScrollView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		D100E67DCD2BBBF48A4B2C94 /* GlimpseCore */ = {isa = PBXGroup; children = (
+			82A6730618EC844DCD473F5B /* Imaging */,
+			729E256995F02ABDB89EBD28 /* Layout */,
+			85A570E267227F6D4AB178B1 /* Navigation */,
+			BB684298F7146180CB3D00EE /* Preferences */,
+		); path = "GlimpseCore/Sources"; sourceTree = "<group>"; };
+		82A6730618EC844DCD473F5B /* Imaging */ = {isa = PBXGroup; children = (
+			19B6BBFC485F5ABEC5F2171B /* ImageDecoder.swift */,
+			42E49A19A52FFDF1F4046205 /* ImageFormats.swift */,
+		); path = "Imaging"; sourceTree = "<group>"; };
+		729E256995F02ABDB89EBD28 /* Layout */ = {isa = PBXGroup; children = (
+			B51169DC80668971C41F3166 /* ImageSizing.swift */,
+		); path = "Layout"; sourceTree = "<group>"; };
+		85A570E267227F6D4AB178B1 /* Navigation */ = {isa = PBXGroup; children = (
+			E471ED2FAD5DA2AC6CD66C3A /* FileNavigator.swift */,
+		); path = "Navigation"; sourceTree = "<group>"; };
+		BB684298F7146180CB3D00EE /* Preferences */ = {isa = PBXGroup; children = (
+			6B5DF970C2BA2F0A52D71940 /* ZoomMode.swift */,
+			180342DA15DE6366A0D3DFA5 /* ZoomPreferences.swift */,
+		); path = "Preferences"; sourceTree = "<group>"; };
+
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -113,12 +171,24 @@
 			buildRules = (
 			);
 			dependencies = (
+				0AF3C04A96725640A0666DDD /* Core dependency */,
 			);
 			name = Glimpse;
 			productName = Glimpse;
 			productReference = 83CBBA061A601CBA00E9B192 /* Glimpse.app */;
 			productType = "com.apple.product-type.application";
 		};
+        DE155F50C7F440B38AA7355E /* GlimpseCore */ = {
+            isa = PBXNativeTarget;
+            buildConfigurationList = BDDF6F97F990E7473F254FA0;
+            buildPhases = (CF897B3B222D09A51B22A0AF, 98E3FBA630EC9148D17FA8F3);
+            buildRules = ();
+            dependencies = ();
+            name = GlimpseCore;
+            productName = GlimpseCore;
+            productReference = 3821C1E3B67DECE8AEBA19CB;
+            productType = "com.apple.product-type.framework";
+        };
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -148,6 +218,7 @@
 			projectRoot = "";
 			targets = (
 				83CBBA131A601CBA00E9B192 /* Glimpse */,
+				DE155F50C7F440B38AA7355E /* GlimpseCore */,
 			);
 		};
 /* End PBXProject section */
@@ -168,16 +239,25 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CC6CC2342FDA8ABA00C2DEC7 /* ZoomMode.swift in Sources */,
-				83CBBA1D1A601CBA00E9B192 /* main.swift in Sources */,
-				83CBBA071A601CBA00E9B192 /* AppDelegate.swift in Sources */,
-				83CBBA081A601CBA00E9B192 /* WindowController.swift in Sources */,
-				83CBBA091A601CBA00E9B192 /* ViewController.swift in Sources */,
-				83CBBA0A1A601CBA00E9B192 /* FileNavigator.swift in Sources */,
-				83CBBA0B1A601CBA00E9B192 /* ImageLoader.swift in Sources */,
+				75A29E53D8539252B3301E6E /* AppDelegate.swift in Sources */,
+				4D499A97523C21E27039445D /* AppMenuController.swift in Sources */,
+				D1558FAFE4F2708C191E4E18 /* main.swift in Sources */,
+				A8662D368E287F25ADE55547 /* ImageViewController.swift in Sources */,
+				56B914ED3EFC4DB76BC91AEB /* ViewerWindowController.swift in Sources */,
+				EC7593AA9BA3FEE82D14BBC4 /* CenteringClipView.swift in Sources */,
+				868F456DBC272B9C18BDD0C4 /* ImageContentView.swift in Sources */,
+				BE015422AE466A881F295429 /* ZoomableScrollView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+        CF897B3B222D09A51B22A0AF = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (
+            88423BA93EB6C1156F8FEB0C /* ImageDecoder.swift in Sources */,
+            22958013978F4786150C71FA /* ImageFormats.swift in Sources */,
+            9E97EF798180C6923861E065 /* ImageSizing.swift in Sources */,
+            4621FE8847A3028318D066BE /* FileNavigator.swift in Sources */,
+            C40A29C4F28FE65B08C363CE /* ZoomMode.swift in Sources */,
+            FD24D445EF095E038D9FD637 /* ZoomPreferences.swift in Sources */,
+        ); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
@@ -343,6 +423,24 @@
 			};
 			name = Release;
 		};
+        85D79A28769D0C99E5AA7FD9 = {isa = XCBuildConfiguration; buildSettings = {
+            DEFINES_MODULE = YES;
+            GENERATE_INFOPLIST_FILE = YES;
+            MACH_O_TYPE = staticlib;
+            PRODUCT_BUNDLE_IDENTIFIER = io.glimpse.core;
+            PRODUCT_NAME = "$(TARGET_NAME)";
+            SKIP_INSTALL = YES;
+            SWIFT_VERSION = 5.0;
+        }; name = Debug; };
+        6D28D532335EE5F23B6894EB = {isa = XCBuildConfiguration; buildSettings = {
+            DEFINES_MODULE = YES;
+            GENERATE_INFOPLIST_FILE = YES;
+            MACH_O_TYPE = staticlib;
+            PRODUCT_BUNDLE_IDENTIFIER = io.glimpse.core;
+            PRODUCT_NAME = "$(TARGET_NAME)";
+            SKIP_INSTALL = YES;
+            SWIFT_VERSION = 5.0;
+        }; name = Release; };
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -364,7 +462,16 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+        BDDF6F97F990E7473F254FA0 = {isa = XCConfigurationList; buildConfigurations = (85D79A28769D0C99E5AA7FD9, 6D28D532335EE5F23B6894EB); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
 /* End XCConfigurationList section */
+
+
+/* Begin PBXContainerItemProxy section */
+        5F9D8A040F83BFA7556640FC = {isa = PBXContainerItemProxy; containerPortal = 83CBB9F71A601CBA00E9B192; proxyType = 1; remoteGlobalIDString = DE155F50C7F440B38AA7355E; remoteInfo = GlimpseCore; };
+/* End PBXContainerItemProxy section */
+/* Begin PBXTargetDependency section */
+        0AF3C04A96725640A0666DDD = {isa = PBXTargetDependency; target = DE155F50C7F440B38AA7355E; targetProxy = 5F9D8A040F83BFA7556640FC; };
+/* End PBXTargetDependency section */
 	};
 	rootObject = 83CBB9F71A601CBA00E9B192 /* Project object */;
 }

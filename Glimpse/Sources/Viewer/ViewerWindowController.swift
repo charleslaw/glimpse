@@ -1,4 +1,5 @@
-import Cocoa
+import AppKit
+import GlimpseCore
 
 private extension NSToolbarItem.Identifier {
     static let zoomIn     = NSToolbarItem.Identifier("zoomIn")
@@ -7,11 +8,11 @@ private extension NSToolbarItem.Identifier {
     static let bestFit    = NSToolbarItem.Identifier("bestFit")
 }
 
-final class WindowController: NSWindowController {
+final class ViewerWindowController: NSWindowController {
 
     // MARK: - Init
 
-    convenience init() {
+    convenience init(preferences: ZoomPreferences) {
         let window = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 800, height: 600),
             styleMask: [.titled, .closable, .miniaturizable, .resizable],
@@ -24,7 +25,7 @@ final class WindowController: NSWindowController {
         window.isReleasedWhenClosed = false
         window.center()
 
-        let vc = ViewController()
+        let vc = ImageViewController(preferences: preferences)
         window.contentViewController = vc
 
         let toolbar = NSToolbar(identifier: "MainToolbar")
@@ -41,17 +42,17 @@ final class WindowController: NSWindowController {
     // MARK: - Public
 
     func loadImage(at url: URL) {
-        (contentViewController as? ViewController)?.loadImage(at: url)
+        (contentViewController as? ImageViewController)?.loadImage(at: url)
     }
 
     func applyZoomMode() {
-        (contentViewController as? ViewController)?.applyZoomMode()
+        (contentViewController as? ImageViewController)?.applyZoomMode()
     }
 }
 
 // MARK: - NSToolbarDelegate
 
-extension WindowController: NSToolbarDelegate {
+extension ViewerWindowController: NSToolbarDelegate {
 
     func toolbarDefaultItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
         [.flexibleSpace, .zoomOut, .zoomIn, .actualSize, .bestFit]
@@ -65,10 +66,10 @@ extension WindowController: NSToolbarDelegate {
                  itemForItemIdentifier itemIdentifier: NSToolbarItem.Identifier,
                  willBeInsertedIntoToolbar flag: Bool) -> NSToolbarItem? {
         switch itemIdentifier {
-        case .zoomOut:    return makeItem(.zoomOut,    symbol: "minus.magnifyingglass", label: "Zoom Out",    action: #selector(ViewController.zoomOut))
-        case .zoomIn:     return makeItem(.zoomIn,     symbol: "plus.magnifyingglass",  label: "Zoom In",     action: #selector(ViewController.zoomIn))
-        case .actualSize: return makeItem(.actualSize, symbol: "1.magnifyingglass",     label: "Actual Size", action: #selector(ViewController.zoomActualSize))
-        case .bestFit:    return makeItem(.bestFit,    symbol: "arrow.up.left.and.arrow.down.right", label: "Best Fit", action: #selector(ViewController.zoomBestFit))
+        case .zoomOut:    return makeItem(.zoomOut,    symbol: "minus.magnifyingglass", label: "Zoom Out",    action: #selector(ImageViewController.zoomOut))
+        case .zoomIn:     return makeItem(.zoomIn,     symbol: "plus.magnifyingglass",  label: "Zoom In",     action: #selector(ImageViewController.zoomIn))
+        case .actualSize: return makeItem(.actualSize, symbol: "1.magnifyingglass",     label: "Actual Size", action: #selector(ImageViewController.zoomActualSize))
+        case .bestFit:    return makeItem(.bestFit,    symbol: "arrow.up.left.and.arrow.down.right", label: "Best Fit", action: #selector(ImageViewController.zoomBestFit))
         default: return nil
         }
     }
