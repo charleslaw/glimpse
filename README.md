@@ -18,10 +18,6 @@
   <img src="https://img.shields.io/badge/license-GPL--3.0-green" alt="License">
 </p>
 
-<p align="center">
-  <img src="docs/preview.png" alt="Glimpse screenshot" width="800">
-</p>
-
 ---
 
 ## Features
