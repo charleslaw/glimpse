@@ -45,7 +45,7 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate {
 
     func windowWillClose(_ notification: Notification) {
         metadataWindow?.close()
-        (contentViewController as? ImageViewController)?.cancelLoading()
+        (contentViewController as? ImageViewController)?.stopImageWork()
         onClose?(self)
     }
 

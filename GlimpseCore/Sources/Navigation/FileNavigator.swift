@@ -9,6 +9,7 @@ public struct FileNavigator: Sendable {
     public private(set) var currentURL: URL
     private var imageURLs: [URL] = []
     private var currentIndex: Int = 0
+    private var prefersForward = true
 
     // MARK: - Init
 
@@ -23,12 +24,14 @@ public struct FileNavigator: Sendable {
     // MARK: - Navigation
 
     public mutating func moveToNext() {
+        prefersForward = true
         guard !imageURLs.isEmpty else { return }
         currentIndex = (currentIndex + 1) % imageURLs.count
         currentURL = imageURLs[currentIndex]
     }
 
     public mutating func moveToPrevious() {
+        prefersForward = false
         guard !imageURLs.isEmpty else { return }
         currentIndex = (currentIndex - 1 + imageURLs.count) % imageURLs.count
         currentURL = imageURLs[currentIndex]
@@ -41,6 +44,15 @@ public struct FileNavigator: Sendable {
 
     /// Total number of images found in the folder.
     public var totalCount: Int { imageURLs.count }
+
+    public var adjacentURLs: [URL] {
+        guard imageURLs.count > 1 else { return [] }
+        var seen = Set<URL>()
+        return (prefersForward ? [1, -1] : [-1, 1]).compactMap { offset in
+            let url = imageURLs[(currentIndex + offset + imageURLs.count) % imageURLs.count]
+            return url != currentURL && seen.insert(url).inserted ? url : nil
+        }
+    }
 
     // MARK: - Private
 

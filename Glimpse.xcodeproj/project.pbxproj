@@ -35,6 +35,8 @@
         38D6FD4FD4439A82E2611DC5 /* ImageContainerMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = F937B1A62B6DF0899949B733 /* ImageContainerMetadata.swift */; };
         4626C9D436FC1676C4920370 /* ImageMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3277908A0C4C1CB7855D63A7 /* ImageMetadata.swift */; };
         ADF4F669B1A16B361DA84F02 /* ImageMetadataReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40145F79DFA743BA2F7A7D69 /* ImageMetadataReader.swift */; };
+        6B228BA7C65EA690D63550A0 /* ImageDecodeWorker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 959C45EA5EE94437EED15F17 /* ImageDecodeWorker.swift */; };
+        181D11D344AB1D05E85A5EF7 /* ImageMemoryCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F31408F53237FA9714CC8A3 /* ImageMemoryCache.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -69,6 +71,8 @@
         F937B1A62B6DF0899949B733 /* ImageContainerMetadata.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageContainerMetadata.swift; sourceTree = "<group>"; };
         3277908A0C4C1CB7855D63A7 /* ImageMetadata.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageMetadata.swift; sourceTree = "<group>"; };
         40145F79DFA743BA2F7A7D69 /* ImageMetadataReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageMetadataReader.swift; sourceTree = "<group>"; };
+        959C45EA5EE94437EED15F17 /* ImageDecodeWorker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageDecodeWorker.swift; sourceTree = "<group>"; };
+        1F31408F53237FA9714CC8A3 /* ImageMemoryCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageMemoryCache.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -173,6 +177,8 @@
 			BB684298F7146180CB3D00EE /* Preferences */,
 		); path = "GlimpseCore/Sources"; sourceTree = "<group>"; };
 		82A6730618EC844DCD473F5B /* Imaging */ = {isa = PBXGroup; children = (
+                1F31408F53237FA9714CC8A3 /* ImageMemoryCache.swift */,
+                959C45EA5EE94437EED15F17 /* ImageDecodeWorker.swift */,
             62F0262780027CB1AB27535E /* ImageRepository.swift */,
 			19B6BBFC485F5ABEC5F2171B /* ImageDecoder.swift */,
 			42E49A19A52FFDF1F4046205 /* ImageFormats.swift */,
@@ -301,6 +307,8 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
         CF897B3B222D09A51B22A0AF = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (
+                181D11D344AB1D05E85A5EF7 /* ImageMemoryCache.swift in Sources */,
+                6B228BA7C65EA690D63550A0 /* ImageDecodeWorker.swift in Sources */,
                 ADF4F669B1A16B361DA84F02 /* ImageMetadataReader.swift in Sources */,
                 4626C9D436FC1676C4920370 /* ImageMetadata.swift in Sources */,
                 38D6FD4FD4439A82E2611DC5 /* ImageContainerMetadata.swift in Sources */,

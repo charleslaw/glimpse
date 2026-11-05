@@ -110,6 +110,12 @@ final class ImageViewController: NSViewController {
         requestID = UUID()
     }
 
+    func stopImageWork() {
+        cancelLoading()
+        let repository = repository
+        Task { await repository.cancelPrefetch() }
+    }
+
     // MARK: - Zoom Actions
 
     @objc private func handleDoubleClick(_ recognizer: NSClickGestureRecognizer) {
@@ -212,6 +218,9 @@ final class ImageViewController: NSViewController {
         applyZoom(imageSize: image.size)
         refreshTitle()
         view.window?.makeFirstResponder(view)
+        let adjacent = navigator?.adjacentURLs ?? []
+        let repository = repository
+        Task { await repository.prefetch(adjacent) }
     }
 
     private func presentFailure(_ error: ImageLoadingError, at url: URL) {
