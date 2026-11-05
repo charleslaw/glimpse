@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1120" viewBox="0 0 1440 1120" role="img" aria-labelledby="title desc">
+<title id="title">Glimpse: image loading and prefetch</title><desc id="desc">Foreground work and speculative decoding have separate workers; only the current request updates the UI.</desc>
+<rect width="1440" height="1120" fill="#f5f7fb"/>
+<text x="720.0" y="46" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="32" font-weight="700" fill="#17263c">Glimpse: image loading and prefetch</text>
+<text x="720.0" y="84" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="19" font-weight="400" fill="#526278">Foreground work and speculative decoding have separate workers; only the current request updates the UI.</text>
+<rect x="60" y="145" width="360" height="90" rx="12" fill="#e7efff" stroke="#9db6e0"/>
+<text x="240.0" y="177.5" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="21" font-weight="700" fill="#17263c">Open / arrow-key navigation</text>
+<text x="240.0" y="206.5" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="17" font-weight="400" fill="#384a62">Local URL + current request ID</text>
+<polyline points="420,190 520,190" fill="none" stroke="#697d99" stroke-width="2"/>
+<polygon points="520,190 510.47372055837116,195.5 510.47372055837116,184.5" fill="#697d99"/>
+<rect x="520" y="145" width="360" height="90" rx="12" fill="#e7efff" stroke="#9db6e0"/>
+<text x="700.0" y="177.5" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="21" font-weight="700" fill="#17263c">ImageRepository actor</text>
+<text x="700.0" y="206.5" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="17" font-weight="400" fill="#384a62">Normalize URL · fingerprint file</text>
+<polyline points="700,235 700,305" fill="none" stroke="#697d99" stroke-width="2"/>
+<polygon points="700,305 694.5,295.47372055837116 705.5,295.47372055837116" fill="#697d99"/>
+<rect x="520" y="305" width="360" height="90" rx="12" fill="#e7efff" stroke="#9db6e0"/>
+<text x="700.0" y="337.5" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="21" font-weight="700" fill="#17263c">Valid cache or pending load?</text>
+<text x="700.0" y="366.5" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="17" font-weight="400" fill="#384a62">LRU hit / matching prefetch</text>
+<polyline points="520,350 240,350 240,505" fill="none" stroke="#697d99" stroke-width="2"/>
+<polygon points="240,505 234.5,495.47372055837116 245.5,495.47372055837116" fill="#697d99"/>
+<text x="330" y="325" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="16" font-weight="400" fill="#697d99">hit</text>
+<polyline points="880,350 1160,350 1160,465" fill="none" stroke="#697d99" stroke-width="2"/>
+<polygon points="1160,465 1154.5,455.47372055837116 1165.5,455.47372055837116" fill="#697d99"/>
+<text x="1035" y="325" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="16" font-weight="400" fill="#697d99">miss</text>
+<rect x="60" y="505" width="360" height="100" rx="12" fill="#e7efff" stroke="#9db6e0"/>
+<text x="240.0" y="530.0" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="21" font-weight="700" fill="#17263c">Return image result</text>
+<text x="240.0" y="559.0" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="17" font-weight="400" fill="#384a62">Controller checks cancellation</text>
+<text x="240.0" y="584.0" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="17" font-weight="400" fill="#384a62">and request ID before display</text>
+<rect x="980" y="465" width="360" height="115" rx="12" fill="#e5f4ee" stroke="#95c5b1"/>
+<text x="1160.0" y="497.5" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="21" font-weight="700" fill="#17263c">Foreground worker</text>
+<text x="1160.0" y="526.5" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="17" font-weight="400" fill="#384a62">Bounded file read + limits</text>
+<text x="1160.0" y="551.5" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="17" font-weight="400" fill="#384a62">ImageIO decode / EXIF transform</text>
+<polyline points="1160,580 1160,660" fill="none" stroke="#697d99" stroke-width="2"/>
+<polygon points="1160,660 1154.5,650.4737205583712 1165.5,650.4737205583712" fill="#697d99"/>
+<rect x="980" y="660" width="360" height="90" rx="12" fill="#e5f4ee" stroke="#95c5b1"/>
+<text x="1160.0" y="692.5" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="21" font-weight="700" fill="#17263c">Recheck + cache</text>
+<text x="1160.0" y="721.5" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="17" font-weight="400" fill="#384a62">File unchanged? Store if eligible</text>
+<polyline points="980,705 700,705 700,555 420,555" fill="none" stroke="#697d99" stroke-width="2"/>
+<polygon points="420,555 429.52627944162884,549.5 429.52627944162884,560.5" fill="#697d99"/>
+<polyline points="240,605 240,780" fill="none" stroke="#697d99" stroke-width="2"/>
+<polygon points="240,780 234.5,770.4737205583712 245.5,770.4737205583712" fill="#697d99"/>
+<rect x="60" y="780" width="360" height="110" rx="12" fill="#e7efff" stroke="#9db6e0"/>
+<text x="240.0" y="810.0" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="21" font-weight="700" fill="#17263c">Main-actor presentation</text>
+<text x="240.0" y="839.0" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="17" font-weight="400" fill="#384a62">Apply zoom + title + background</text>
+<text x="240.0" y="864.0" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="17" font-weight="400" fill="#384a62">Failures clear old content</text>
+<polyline points="420,835 545,835" fill="none" stroke="#697d99" stroke-width="2"/>
+<polygon points="545,835 535.4737205583712,840.5 535.4737205583712,829.5" fill="#697d99"/>
+<rect x="545" y="780" width="350" height="110" rx="12" fill="#e7efff" stroke="#9db6e0"/>
+<text x="720.0" y="810.0" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="21" font-weight="700" fill="#17263c">Suggest adjacent images</text>
+<text x="720.0" y="839.0" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="17" font-weight="400" fill="#384a62">Direction-aware next / previous</text>
+<text x="720.0" y="864.0" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="17" font-weight="400" fill="#384a62">At most two unique neighbors</text>
+<polyline points="895,835 980,835 980,935" fill="none" stroke="#697d99" stroke-width="2"/>
+<polygon points="980,935 974.5,925.4737205583712 985.5,925.4737205583712" fill="#697d99"/>
+<rect x="800" y="935" width="540" height="110" rx="12" fill="#e5f4ee" stroke="#95c5b1"/>
+<text x="1070.0" y="965.0" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="21" font-weight="700" fill="#17263c">Separate speculative worker</text>
+<text x="1070.0" y="994.0" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="17" font-weight="400" fill="#384a62">Decode eligible neighbors; skip GIF/TIFF</text>
+<text x="1070.0" y="1019.0" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="17" font-weight="400" fill="#384a62">Validate version before bounded cache insertion</text>
+<text x="390" y="1010" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#24624e">Per-window LRU: 3 images / 256 MB estimate</text>
+<text x="390" y="1040" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="17" font-weight="400" fill="#526278">Mutable animation representations are not cached.</text>
+<text x="720" y="1090" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="18" font-weight="400" fill="#526278">Cancellation prevents stale display; native codec calls cannot be interrupted mid-operation.</text>
+</svg>

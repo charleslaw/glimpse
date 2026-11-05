@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1100" viewBox="0 0 1440 1100" role="img" aria-labelledby="title desc">
+<title id="title">Glimpse: major components</title><desc id="desc">Arrows show ownership or calls; UI stays on the main actor, services own their state.</desc>
+<rect width="1440" height="1100" fill="#f5f7fb"/>
+<text x="720.0" y="46" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="32" font-weight="700" fill="#17263c">Glimpse: major components</text>
+<text x="720.0" y="84" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="19" font-weight="400" fill="#526278">Arrows show ownership or calls; UI stays on the main actor, services own their state.</text>
+<rect x="530" y="120" width="380" height="90" rx="12" fill="#e7efff" stroke="#9db6e0"/>
+<text x="720.0" y="152.5" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="21" font-weight="700" fill="#17263c">AppDelegate</text>
+<text x="720.0" y="181.5" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="17" font-weight="400" fill="#384a62">Application lifetime + viewer collection</text>
+<polyline points="600,210 280,250" fill="none" stroke="#697d99" stroke-width="2"/>
+<polygon points="280,250 288.77052529707987,243.36088213590978 290.13490737756115,254.2759387797601" fill="#697d99"/>
+<polyline points="840,210 1060,250" fill="none" stroke="#697d99" stroke-width="2"/>
+<polygon points="1060,250 1049.643510392078,253.70717183321824 1051.611250212278,242.88460282211923" fill="#697d99"/>
+<rect x="90" y="250" width="380" height="90" rx="12" fill="#e7efff" stroke="#9db6e0"/>
+<text x="280.0" y="282.5" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="21" font-weight="700" fill="#17263c">AppMenuController</text>
+<text x="280.0" y="311.5" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="17" font-weight="400" fill="#384a62">Top-level menus + change callbacks</text>
+<rect x="870" y="250" width="380" height="90" rx="12" fill="#e7efff" stroke="#9db6e0"/>
+<text x="1060.0" y="282.5" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="21" font-weight="700" fill="#17263c">ViewerWindowController</text>
+<text x="1060.0" y="311.5" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="17" font-weight="400" fill="#384a62">Native window, toolbar + inspector</text>
+<polyline points="280,340 280,380" fill="none" stroke="#697d99" stroke-width="2"/>
+<polygon points="280,380 274.5,370.47372055837116 285.5,370.47372055837116" fill="#697d99"/>
+<polyline points="1060,340 1060,380" fill="none" stroke="#697d99" stroke-width="2"/>
+<polygon points="1060,380 1054.5,370.47372055837116 1065.5,370.47372055837116" fill="#697d99"/>
+<rect x="90" y="380" width="380" height="110" rx="12" fill="#e7efff" stroke="#9db6e0"/>
+<text x="280.0" y="410.0" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="21" font-weight="700" fill="#17263c">Feature UI controllers</text>
+<text x="280.0" y="439.0" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="17" font-weight="400" fill="#384a62">Background menu + RGB editor</text>
+<text x="280.0" y="464.0" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="17" font-weight="400" fill="#384a62">Actions menu + ActionRunner</text>
+<rect x="870" y="380" width="380" height="110" rx="12" fill="#e7efff" stroke="#9db6e0"/>
+<text x="1060.0" y="410.0" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="21" font-weight="700" fill="#17263c">ImageViewController</text>
+<text x="1060.0" y="439.0" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="17" font-weight="400" fill="#384a62">Navigation, zoom + presentation</text>
+<text x="1060.0" y="464.0" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="17" font-weight="400" fill="#384a62">Native image / scroll / clip views</text>
+<text x="720" y="553" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="23" font-weight="700" fill="#24624e">GlimpseCore services</text>
+<polyline points="220,490 165,600" fill="none" stroke="#697d99" stroke-width="2"/>
+<polygon points="165,600 164.3409321303286,589.0197618630939 174.1796312313277,593.9391114135934" fill="#697d99"/>
+<polyline points="350,490 495,600" fill="none" stroke="#697d99" stroke-width="2"/>
+<polygon points="495,600 484.0863706771191,598.6242474776494 490.73462197223563,589.8606434977231" fill="#697d99"/>
+<polyline points="1060,490 825,600" fill="none" stroke="#697d99" stroke-width="2"/>
+<polygon points="825,600 831.2961876024804,590.9801318371956 835.9595287690153,600.9427243293384" fill="#697d99"/>
+<polyline points="1250,295 1360,295 1360,570 1155,600" fill="none" stroke="#697d99" stroke-width="2"/>
+<polygon points="1155,600 1163.6294871029083,593.1785666945474 1165.2222780841973,604.0626384000225" fill="#697d99"/>
+<rect x="30" y="600" width="270" height="125" rx="12" fill="#e5f4ee" stroke="#95c5b1"/>
+<text x="165.0" y="637.5" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="21" font-weight="700" fill="#17263c">Preferences + Layout</text>
+<text x="165.0" y="666.5" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="17" font-weight="400" fill="#384a62">Zoom / background stores</text>
+<text x="165.0" y="691.5" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="17" font-weight="400" fill="#384a62">Pure ImageSizing rules</text>
+<rect x="360" y="600" width="270" height="125" rx="12" fill="#e5f4ee" stroke="#95c5b1"/>
+<text x="495.0" y="637.5" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="21" font-weight="700" fill="#17263c">Actions configuration</text>
+<text x="495.0" y="666.5" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="17" font-weight="400" fill="#384a62">JSON validation + tokens</text>
+<text x="495.0" y="691.5" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="17" font-weight="400" fill="#384a62">Serialized config I/O</text>
+<rect x="690" y="600" width="270" height="125" rx="12" fill="#e5f4ee" stroke="#95c5b1"/>
+<text x="825.0" y="637.5" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="21" font-weight="700" fill="#17263c">ImageRepository actor</text>
+<text x="825.0" y="666.5" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="17" font-weight="400" fill="#384a62">Navigation + bounded LRU</text>
+<text x="825.0" y="691.5" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="17" font-weight="400" fill="#384a62">Foreground / prefetch routing</text>
+<rect x="1020" y="600" width="270" height="125" rx="12" fill="#e5f4ee" stroke="#95c5b1"/>
+<text x="1155.0" y="637.5" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="21" font-weight="700" fill="#17263c">Metadata reader actor</text>
+<text x="1155.0" y="666.5" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="17" font-weight="400" fill="#384a62">ImageIO + container fields</text>
+<text x="1155.0" y="691.5" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="17" font-weight="400" fill="#384a62">Feeds metadata inspector</text>
+<polyline points="825,725 825,780" fill="none" stroke="#697d99" stroke-width="2"/>
+<polygon points="825,780 819.5,770.4737205583712 830.5,770.4737205583712" fill="#697d99"/>
+<rect x="690" y="780" width="270" height="100" rx="12" fill="#e5f4ee" stroke="#95c5b1"/>
+<text x="825.0" y="805.0" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="21" font-weight="700" fill="#17263c">Decode worker actors</text>
+<text x="825.0" y="834.0" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="17" font-weight="400" fill="#384a62">ImageDecoder + ImageIO</text>
+<text x="825.0" y="859.0" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="17" font-weight="400" fill="#384a62">Separate foreground / prefetch</text>
+<polyline points="495,725 495,935" fill="none" stroke="#697d99" stroke-width="2"/>
+<polygon points="495,935 489.5,925.4737205583712 500.5,925.4737205583712" fill="#697d99"/>
+<polyline points="825,880 825,915 620,915 620,935" fill="none" stroke="#697d99" stroke-width="2"/>
+<polygon points="620,935 614.5,925.4737205583712 625.5,925.4737205583712" fill="#697d99"/>
+<polyline points="1155,725 1155,980 660,980" fill="none" stroke="#697d99" stroke-width="2"/>
+<polygon points="660,980 669.5262794416288,974.5 669.5262794416288,985.5" fill="#697d99"/>
+<rect x="330" y="935" width="330" height="90" rx="12" fill="#edf0f5" stroke="#b0bac8"/>
+<text x="495.0" y="967.5" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="21" font-weight="700" fill="#17263c">BoundedLocalFileReader</text>
+<text x="495.0" y="996.5" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="17" font-weight="400" fill="#384a62">One validated regular-file read</text>
+<text x="720" y="1061" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="18" font-weight="400" fill="#526278">AppKit execution stays in the app. Core configuration never launches a command.</text>
+</svg>

@@ -111,6 +111,8 @@ Run `bash scripts/check.sh` for core unit tests and Debug/Release builds with st
 
 ## Project structure
 
+Start with the illustrated [architecture and repository guide](specs/README.md) for component responsibilities, connections, file layout, image loading, settings and development workflows.
+
 The AppKit app in `Glimpse/Sources` owns application lifecycle, windows, menus and presentation. `GlimpseCore/Sources` contains navigation, preferences, layout, bounded image loading/cache, actions configuration and metadata services. Xcode links core as a static framework; SwiftPM runs its independent tests against the same files. See [Architecture and audit](docs/ARCHITECTURE-AUDIT.md) and [Actions configuration](docs/ACTIONS.md).
 
 ## Contributing
