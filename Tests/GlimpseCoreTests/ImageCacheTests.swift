@@ -73,8 +73,12 @@ final class ImageCacheTests: XCTestCase {
         let url = try folder.file("next.png")
         let started = expectation(description: "Prefetch started")
         let release = DispatchSemaphore(value: 0)
+        let timedOut = DispatchSemaphore(value: 0)
         let probe = CachingDecoderProbe { _, count in
-            if count == 1 { started.fulfill(); _ = release.wait(timeout: .now() + 2) }
+            if count == 1 {
+                started.fulfill()
+                if release.wait(timeout: .now() + 2) == .timedOut { timedOut.signal() }
+            }
         }
         let repository = ImageRepository(decoder: probe)
         await repository.prefetch([url])
@@ -82,6 +86,7 @@ final class ImageCacheTests: XCTestCase {
         try Data([1]).write(to: url)
         // A separate foreground worker must proceed even while the stale prefetch is blocked.
         _ = try await repository.load(url)
+        XCTAssertEqual(timedOut.wait(timeout: .now()), .timedOut, "Foreground decoding waited for speculative work")
         release.signal()
         XCTAssertEqual(probe.count(url), 2)
     }
@@ -100,5 +105,19 @@ final class ImageCacheTests: XCTestCase {
         let folder = try TemporaryFolder()
         let first = try folder.file("a.jpg"), second = try folder.file("b.jpg")
         XCTAssertEqual(FileNavigator(currentURL: first).adjacentURLs, [second])
+    }
+
+    @MainActor func testRealJPEGWarmLoadReusesImageAndReportsTiming() async throws {
+        let folder = try TemporaryFolder()
+        let url = try folder.image("large.jpg", type: .jpeg, width: 2048, height: 1536)
+        let repository = ImageRepository()
+        let start = Date()
+        let cold = try await repository.load(url)
+        let coldMilliseconds = Date().timeIntervalSince(start) * 1000
+        let warmStart = Date()
+        let warm = try await repository.load(url)
+        let warmMilliseconds = Date().timeIntervalSince(warmStart) * 1000
+        XCTAssertTrue(try cold.image.get() === warm.image.get())
+        print(String(format: "JPEG load benchmark: cold %.2f ms, warm %.2f ms", coldMilliseconds, warmMilliseconds))
     }
 }

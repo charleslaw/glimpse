@@ -66,4 +66,22 @@ final class ImageMetadataTests: XCTestCase {
             _ = ImageContainerMetadata.inspect(data)
         }
     }
+
+    func testCommentFloodCannotCreateAnUnboundedMetadataReport() {
+        var data = Data("GIF89a".utf8) + Data([1, 0, 1, 0, 0, 0, 0])
+        var block = Data([0x21, 0xfe])
+        var remaining = 4096
+        while remaining > 0 {
+            let length = min(remaining, 255)
+            block.append(UInt8(length))
+            block.append(Data(repeating: 97, count: length))
+            remaining -= length
+        }
+        block.append(0)
+        for _ in 0..<1_100 { data.append(block) }
+        data.append(0x3b)
+        let entries = ImageContainerMetadata.inspect(data)
+        XCTAssertTrue(entries.contains { $0.key == "Inspector.Container Limit" })
+        XCTAssertLessThan(entries.reduce(0) { $0 + $1.key.utf8.count + $1.value.utf8.count }, 4 * 1024 * 1024 + 512)
+    }
 }

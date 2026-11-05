@@ -45,6 +45,8 @@ final class ActionRunner {
             throw Failure.message("Wait for a running action to finish before starting another.")
         }
         let executable = URL(fileURLWithPath: path).resolvingSymlinksInPath()
+        _ = try ActionsConfiguration(actions: [ImageAction(id: action.id, title: action.title, kind: .runCommand,
+                                                           executable: executable.path, arguments: action.arguments)]).encoded()
         guard (try? executable.resourceValues(forKeys: [.isRegularFileKey]))?.isRegularFile == true,
               FileManager.default.isExecutableFile(atPath: executable.path) else {
             throw Failure.message("The configured executable is missing or is not executable.")

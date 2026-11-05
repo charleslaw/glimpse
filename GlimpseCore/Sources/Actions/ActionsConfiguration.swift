@@ -32,9 +32,12 @@ public struct ActionsConfiguration: Codable, Equatable, Sendable {
         guard version == 1, actions.count <= 64 else { throw ActionsConfigurationError.invalid("Use version 1 with at most 64 actions.") }
         var ids = Set<String>()
         for action in actions {
-            guard !action.id.isEmpty, action.id.count <= 80, ids.insert(action.id).inserted,
+            guard !action.id.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                  action.id.utf8.count <= 80, ids.insert(action.id).inserted,
                   !action.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
-                  action.title.count <= 80, !action.title.contains(where: { $0.isNewline }) else {
+                  action.title.utf8.count <= 80,
+                  !action.title.unicodeScalars.contains(where: CharacterSet.controlCharacters.contains),
+                  !action.id.unicodeScalars.contains(where: CharacterSet.controlCharacters.contains) else {
                 throw ActionsConfigurationError.invalid("Each action needs a unique id and a short title.")
             }
             switch action.kind {
@@ -42,17 +45,33 @@ public struct ActionsConfiguration: Codable, Equatable, Sendable {
             case .runCommand:
                 guard let executable = action.executable, executable.hasPrefix("/"),
                       !executable.contains("{"), !executable.utf8.contains(0),
-                      executable.count <= 4096, (action.arguments ?? []).count <= 32 else {
+                      executable.utf8.count <= 4096, (action.arguments ?? []).count <= 32 else {
                     throw ActionsConfigurationError.invalid("Commands need a fixed, absolute executable path and at most 32 arguments.")
                 }
                 for argument in action.arguments ?? [] {
-                    guard argument.count <= 8192, !argument.utf8.contains(0) else {
+                    guard argument.utf8.count <= 8192, !argument.utf8.contains(0) else {
                         throw ActionsConfigurationError.invalid("Command arguments are too long or contain a null byte.")
                     }
                     try validatePlaceholders(argument)
                 }
+                let name = URL(fileURLWithPath: executable).lastPathComponent.lowercased()
+                let shells: Set<String> = ["sh", "bash", "zsh", "fish", "csh", "tcsh", "ksh", "dash"]
+                let interpreters: Set<String> = ["python", "node", "nodejs", "ruby", "perl", "osascript", "swift", "env", "pwsh"]
+                let inlineCode = (action.arguments ?? []).contains { argument in
+                    if shells.contains(name), argument.hasPrefix("-"), !argument.hasPrefix("--"), argument.dropFirst().contains("c") { return true }
+                    if shells.contains(name), argument.hasPrefix("--command") { return true }
+                    if interpreters.contains(name) || name.hasPrefix("python") {
+                        return ["-c", "-e", "--eval", "--execute", "-command", "-encodedcommand"].contains(argument.lowercased()) ||
+                            argument.hasPrefix("--eval=") || argument.hasPrefix("--execute=") ||
+                            (name == "env" && (argument == "-S" || argument.hasPrefix("--split-string")))
+                    }
+                    return false
+                }
+                guard !inlineCode else {
+                    throw ActionsConfigurationError.invalid("Inline shell/interpreter code is not supported. Run a trusted script file and pass {filepath} as a separate argument.")
+                }
             case .openURL:
-                guard let template = action.url, template.count <= 8192,
+                guard let template = action.url, template.utf8.count <= 8192,
                       let components = URLComponents(string: template), components.scheme == "https",
                       let host = components.host, !host.isEmpty, !host.contains("{"),
                       components.user == nil, components.password == nil else {

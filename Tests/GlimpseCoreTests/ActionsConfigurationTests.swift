@@ -59,6 +59,42 @@ final class ActionsConfigurationTests: XCTestCase {
         XCTAssertThrowsError(try ActionsConfiguration.decode(Data(repeating: 32, count: 65_537)))
     }
 
+    func testRejectsControlCharactersAndOversizedUnicodeLabels() {
+        for title in ["Hidden\0Action", String(repeating: "a\u{301}", count: 81)] {
+            XCTAssertThrowsError(try ActionsConfiguration(actions: [ImageAction(id: "a", title: title, kind: .copyImagePath)]).encoded())
+        }
+    }
+
+    func testInlineInterpretersCannotTurnFileNamesIntoCode() {
+        for (executable, arguments) in [
+            ("/bin/sh", ["-c", "echo {filename}"]),
+            ("/bin/zsh", ["-lc", "echo {filepath}"]),
+            ("/usr/bin/python3", ["-c", "print('{filename}')"]),
+            ("/usr/bin/env", ["-S", "python3 -c {filename}"])
+        ] {
+            let action = ImageAction(id: "a", title: "A", kind: .runCommand, executable: executable, arguments: arguments)
+            XCTAssertThrowsError(try ActionsConfiguration(actions: [action]).encoded())
+        }
+    }
+
+    func testTrustedScriptCanReceiveASeparateFileArgument() throws {
+        let action = ImageAction(id: "a", title: "A", kind: .runCommand,
+                                 executable: "/usr/bin/python3", arguments: ["/Users/me/action.py", "{filepath}"])
+        XCTAssertNoThrow(try ActionsConfiguration(actions: [action]).encoded())
+    }
+
+    func testOversizedInvalidConfigCanBeResetWithoutLosingItsBackup() async throws {
+        let folder = try TemporaryFolder()
+        let original = Data(repeating: 65, count: 100_000)
+        let url = try folder.file("actions.json", data: original)
+        let store = ActionsConfigurationStore(defaultURL: url, preferencesSuite: "GlimpseTests.\(UUID())")
+        let backupValue = try await store.reset()
+        let backup = try XCTUnwrap(backupValue)
+        XCTAssertEqual(try Data(contentsOf: backup), original)
+        let reset = try await store.load()
+        XCTAssertEqual(reset, .defaults)
+    }
+
     func testStoreCreatesDefaultsAndResetBacksUpEdits() async throws {
         let folder = try TemporaryFolder()
         let url = folder.url.appendingPathComponent("actions.json")

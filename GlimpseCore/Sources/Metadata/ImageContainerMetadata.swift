@@ -24,14 +24,14 @@ enum ImageContainerMetadata {
         guard data.count >= 13 else { return [] }
         let packed = data[10]
         let globalColors = packed & 0x80 == 0 ? 0 : 1 << (Int(packed & 7) + 1)
-        var entries = [MetadataEntry("GIF.Version", String(data: data.prefix(6), encoding: .ascii) ?? ""),
+        var entries = Entries([MetadataEntry("GIF.Version", String(data: data.prefix(6), encoding: .ascii) ?? ""),
                        MetadataEntry("GIF.Compression", "LZW (lossless)"),
                        MetadataEntry("GIF.Global Palette Entries", String(globalColors)),
-                       MetadataEntry("GIF.Color Resolution (bits)", String(((packed >> 4) & 7) + 1))]
+                       MetadataEntry("GIF.Color Resolution (bits)", String(((packed >> 4) & 7) + 1))])
         var cursor = Cursor(data: data, offset: 13)
-        guard cursor.skip(globalColors * 3) else { return entries }
+        guard cursor.skip(globalColors * 3) else { return entries.values }
         var frame = 0, comment = 0
-        while !Task.isCancelled, let marker = cursor.byte(), frame < 1_000 {
+        while !Task.isCancelled, !entries.isFull, let marker = cursor.byte(), frame < 1_000 {
             if marker == 0x3b { break }
             if marker == 0x21 {
                 guard let label = cursor.byte() else { break }
@@ -54,14 +54,14 @@ enum ImageContainerMetadata {
                 guard cursor.subBlocks(capture: false) != nil else { break }
             } else { break }
         }
-        return entries
+        return entries.values
     }
 
     private static func jpeg(_ data: Data) -> [MetadataEntry] {
-        var entries = [MetadataEntry("JPEG.Compression", "JPEG")]
+        var entries = Entries([MetadataEntry("JPEG.Compression", "JPEG")])
         var offset = 2, comments = 0
         let frameMarkers: Set<UInt8> = [0xc0, 0xc1, 0xc2, 0xc3, 0xc5, 0xc6, 0xc7, 0xc9, 0xca, 0xcb, 0xcd, 0xce, 0xcf]
-        while offset + 1 < data.count, entries.count < 10_000 {
+        while offset + 1 < data.count, !entries.isFull {
             guard data[offset] == 0xff else { break }
             while offset < data.count, data[offset] == 0xff { offset += 1 }
             guard offset < data.count else { break }
@@ -107,7 +107,26 @@ enum ImageContainerMetadata {
             }
             offset = end
         }
-        return entries
+        return entries.values
+    }
+
+    private struct Entries {
+        private var rows: [MetadataEntry] = []
+        private var remaining = 4 * 1024 * 1024
+        private(set) var isFull = false
+
+        init(_ initial: [MetadataEntry]) { initial.forEach { append($0) } }
+
+        mutating func append(_ entry: MetadataEntry) {
+            let cost = entry.key.utf8.count + entry.value.utf8.count
+            guard !isFull, rows.count < 10_000, cost <= remaining else { isFull = true; return }
+            rows.append(entry)
+            remaining -= cost
+        }
+
+        var values: [MetadataEntry] {
+            rows + (isFull ? [MetadataEntry("Inspector.Container Limit", "Additional container fields exceed the display budget.")] : [])
+        }
     }
 
     private struct Cursor {

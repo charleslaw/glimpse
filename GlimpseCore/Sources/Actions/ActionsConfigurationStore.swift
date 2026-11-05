@@ -34,13 +34,27 @@ public actor ActionsConfigurationStore {
 
     @discardableResult public func reset() throws -> URL? {
         let url = fileURL
+        let prepared = url.deletingLastPathComponent().appendingPathComponent("actions-reset-\(UUID().uuidString).json")
+        try writeDefaults(to: prepared)
+        defer { try? FileManager.default.removeItem(at: prepared) }
         var backup: URL?
         if FileManager.default.fileExists(atPath: url.path) {
+            guard (try? url.resolvingSymlinksInPath().resourceValues(forKeys: [.isRegularFileKey]))?.isRegularFile == true else {
+                throw ActionsConfigurationError.invalid("The config path is no longer a regular file. Choose another config file.")
+            }
             let copy = url.deletingLastPathComponent().appendingPathComponent("actions-backup-\(UUID().uuidString).json")
-            try FileManager.default.copyItem(at: url, to: copy)
+            // Rename preserves even an oversized/invalid config without copying it
+            // into memory or recursively copying an unexpected directory.
+            try FileManager.default.moveItem(at: url, to: copy)
             backup = copy
         }
-        try writeDefaults(to: url)
+        do { try FileManager.default.moveItem(at: prepared, to: url) }
+        catch {
+            if let backup, !FileManager.default.fileExists(atPath: url.path) {
+                try? FileManager.default.moveItem(at: backup, to: url)
+            }
+            throw error
+        }
         return backup
     }
 
