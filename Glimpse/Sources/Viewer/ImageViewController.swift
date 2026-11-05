@@ -17,6 +17,8 @@ final class ImageViewController: NSViewController {
     private let preferences: ZoomPreferences
     private var windowResizeObserver: NotificationObservation?
 
+    var currentImageURL: URL? { navigator?.currentURL }
+
     init(preferences: ZoomPreferences) {
         self.preferences = preferences
         super.init(nibName: nil, bundle: nil)

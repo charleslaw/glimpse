@@ -30,6 +30,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         true
     }
 
+    func applicationDidBecomeActive(_ notification: Notification) { menuController?.reloadActions() }
+
+    func applicationWillTerminate(_ notification: Notification) { menuController?.cancelRunningActions() }
+
     // MARK: - File Opening
 
     func application(_ sender: NSApplication, openFile filename: String) -> Bool {

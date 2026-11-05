@@ -7,13 +7,20 @@ final class AppMenuController: NSObject {
     private let onOpen: () -> Void
     private let onZoomModeChanged: () -> Void
     private var zoomModeItems: [ZoomMode: NSMenuItem] = [:]
+    private let actionsController: ActionsMenuController
 
     init(preferences: ZoomPreferences, onOpen: @escaping () -> Void,
          onZoomModeChanged: @escaping () -> Void) {
         self.preferences = preferences
         self.onOpen = onOpen
         self.onZoomModeChanged = onZoomModeChanged
+        self.actionsController = ActionsMenuController {
+            ((NSApp.keyWindow ?? NSApp.mainWindow)?.contentViewController as? ImageViewController)?.currentImageURL
+        }
     }
+
+    func reloadActions() { actionsController.reload() }
+    func cancelRunningActions() { actionsController.cancelRunningActions() }
 
     @objc private func openDocument(_ sender: Any?) { onOpen() }
 
@@ -107,6 +114,10 @@ final class AppMenuController: NSObject {
             settingsMenu.addItem(item)
             zoomModeItems[mode] = item
         }
+
+        let actionsItem = NSMenuItem()
+        mainMenu.addItem(actionsItem)
+        actionsItem.submenu = actionsController.menu
 
         // Window menu
         let windowItem = NSMenuItem()

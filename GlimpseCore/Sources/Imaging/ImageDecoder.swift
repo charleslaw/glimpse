@@ -1,6 +1,5 @@
 import AppKit
 import ImageIO
-import Darwin
 
 public protocol ImageDecoding: Sendable {
     func decode(_ url: URL) throws -> NSImage
@@ -105,29 +104,9 @@ public struct ImageDecoder: ImageDecoding {
     }
 
     private func readLocalFile(_ url: URL) throws -> Data {
-        // Validate the opened descriptor, not cached URL metadata. Nonblocking open
-        // prevents a FIFO masquerading as an image from hanging the worker.
-        let descriptor = open(url.path, O_RDONLY | O_NONBLOCK | O_CLOEXEC)
-        guard descriptor >= 0 else { throw ImageLoadingError.notRegularFile }
-        let file = FileHandle(fileDescriptor: descriptor, closeOnDealloc: true)
-        defer { try? file.close() }
-        var info = stat()
-        guard fstat(descriptor, &info) == 0, (info.st_mode & S_IFMT) == S_IFREG else {
-            throw ImageLoadingError.notRegularFile
-        }
-        guard limits.maximumFileBytes >= 0, limits.maximumFileBytes < Int.max,
-              info.st_size >= 0, info.st_size <= limits.maximumFileBytes else {
-            throw ImageLoadingError.fileTooLarge
-        }
-        var data = Data()
-        while true {
-            try Task.checkCancellation()
-            let remaining = limits.maximumFileBytes - data.count + 1
-            guard let chunk = try file.read(upToCount: min(1_048_576, remaining)), !chunk.isEmpty else { break }
-            data.append(chunk)
-            guard data.count <= limits.maximumFileBytes else { throw ImageLoadingError.fileTooLarge }
-        }
-        // Decode the validated bytes; reopening the path could read a different file.
-        return data
+        do { return try BoundedLocalFileReader.read(url, maximumBytes: limits.maximumFileBytes) }
+        catch BoundedLocalFileReader.Failure.notLocal { throw ImageLoadingError.notLocalFile }
+        catch BoundedLocalFileReader.Failure.tooLarge { throw ImageLoadingError.fileTooLarge }
+        catch BoundedLocalFileReader.Failure.notRegular { throw ImageLoadingError.notRegularFile }
     }
 }
