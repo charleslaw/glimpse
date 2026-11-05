@@ -11,6 +11,7 @@ private extension NSToolbarItem.Identifier {
 @MainActor
 final class ViewerWindowController: NSWindowController, NSWindowDelegate {
     var onClose: ((ViewerWindowController) -> Void)?
+    private var metadataWindow: MetadataWindowController?
 
     // MARK: - Init
 
@@ -43,11 +44,18 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate {
     }
 
     func windowWillClose(_ notification: Notification) {
+        metadataWindow?.close()
         (contentViewController as? ImageViewController)?.cancelLoading()
         onClose?(self)
     }
 
     // MARK: - Public
+
+    @objc func viewMetadata(_ sender: Any?) {
+        guard let url = (contentViewController as? ImageViewController)?.currentImageURL else { return }
+        if metadataWindow == nil { metadataWindow = MetadataWindowController() }
+        metadataWindow?.showMetadata(for: url)
+    }
 
     func loadImage(at url: URL) {
         (contentViewController as? ImageViewController)?.loadImage(at: url)

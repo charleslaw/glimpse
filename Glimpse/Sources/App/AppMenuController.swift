@@ -68,6 +68,9 @@ final class AppMenuController: NSObject {
                          action: #selector(openDocument(_:)),
                          keyEquivalent: "o")
         openItem.target = self
+        fileMenu.addItem(withTitle: "View Metadata…",
+                         action: #selector(ViewerWindowController.viewMetadata(_:)),
+                         keyEquivalent: "i")
         fileMenu.addItem(.separator())
         fileMenu.addItem(withTitle: "Close Window",
                          action: #selector(NSWindow.performClose(_:)),

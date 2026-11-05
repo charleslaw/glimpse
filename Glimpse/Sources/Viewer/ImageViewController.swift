@@ -181,6 +181,7 @@ final class ImageViewController: NSViewController {
         imageView.frame = .zero
         errorLabel.isHidden = true
         view.window?.title = "\(url.lastPathComponent) — Loading…"
+        view.window?.representedURL = url
         let repository = repository
         imageTask = Task { @MainActor [weak self] in
             do {

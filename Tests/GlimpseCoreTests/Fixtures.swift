@@ -21,7 +21,8 @@ final class TemporaryFolder {
     }
 
     func image(_ name: String = "image.png", type: UTType = .png,
-               width: Int = 4, height: Int = 2, orientation: Int = 1, frames: Int = 1) throws -> URL {
+               width: Int = 4, height: Int = 2, orientation: Int = 1, frames: Int = 1,
+               extraProperties: [CFString: Any] = [:]) throws -> URL {
         let url = self.url.appendingPathComponent(name)
         let context = try XCTUnwrap(CGContext(data: nil, width: width, height: height,
                                               bitsPerComponent: 8, bytesPerRow: 0,
@@ -32,8 +33,9 @@ final class TemporaryFolder {
             context.setFillColor(CGColor(red: CGFloat(index % 2), green: 0, blue: CGFloat((index + 1) % 2), alpha: 1))
             context.fill(CGRect(x: 0, y: 0, width: width, height: height))
             let image = try XCTUnwrap(context.makeImage())
-            let properties: [CFString: Any] = [kCGImagePropertyOrientation: orientation,
-                                               kCGImagePropertyGIFDictionary: [kCGImagePropertyGIFDelayTime: 0.1]]
+            var properties = extraProperties
+            properties[kCGImagePropertyOrientation] = orientation
+            if type == .gif { properties[kCGImagePropertyGIFDictionary] = [kCGImagePropertyGIFDelayTime: 0.1] }
             CGImageDestinationAddImage(destination, image, properties as CFDictionary)
         }
         XCTAssertTrue(CGImageDestinationFinalize(destination))

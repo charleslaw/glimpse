@@ -31,6 +31,10 @@
         F366E820E51DDAA25648ED27 /* ActionRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4F14830812E9E0DF918CF23 /* ActionRunner.swift */; };
         60F1CA6DC30950E5BB30EC4E /* ActionsMenuController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8ECEAB661EAB5A8A8B99B9E /* ActionsMenuController.swift */; };
         5381D17AE92232AC6FE18682 /* BoundedLocalFileReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F339A338FFDBB37B937E64E /* BoundedLocalFileReader.swift */; };
+        AEF189EFEA8AF5FA549C1B3E /* MetadataWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CEBA35FC65E88E2D198534B /* MetadataWindowController.swift */; };
+        38D6FD4FD4439A82E2611DC5 /* ImageContainerMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = F937B1A62B6DF0899949B733 /* ImageContainerMetadata.swift */; };
+        4626C9D436FC1676C4920370 /* ImageMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3277908A0C4C1CB7855D63A7 /* ImageMetadata.swift */; };
+        ADF4F669B1A16B361DA84F02 /* ImageMetadataReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40145F79DFA743BA2F7A7D69 /* ImageMetadataReader.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -61,6 +65,10 @@
         B4F14830812E9E0DF918CF23 /* ActionRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionRunner.swift; sourceTree = "<group>"; };
         B8ECEAB661EAB5A8A8B99B9E /* ActionsMenuController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionsMenuController.swift; sourceTree = "<group>"; };
         1F339A338FFDBB37B937E64E /* BoundedLocalFileReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoundedLocalFileReader.swift; sourceTree = "<group>"; };
+        2CEBA35FC65E88E2D198534B /* MetadataWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetadataWindowController.swift; sourceTree = "<group>"; };
+        F937B1A62B6DF0899949B733 /* ImageContainerMetadata.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageContainerMetadata.swift; sourceTree = "<group>"; };
+        3277908A0C4C1CB7855D63A7 /* ImageMetadata.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageMetadata.swift; sourceTree = "<group>"; };
+        40145F79DFA743BA2F7A7D69 /* ImageMetadataReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageMetadataReader.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -116,6 +124,7 @@
 		83CBBA0F1A601CBA00E9B192 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+                0870C19CE8B586A20471C8E5 /* Metadata */,
                 814D256A1B2E3D1C34B258F2 /* Actions */,
 				1C48CE29E4E135EE62951B22 /* App */,
 				EFDFE9BBC7F2E61C5CF16CFF /* Viewer */,
@@ -155,6 +164,7 @@
 			sourceTree = "<group>";
 		};
 		D100E67DCD2BBBF48A4B2C94 /* GlimpseCore */ = {isa = PBXGroup; children = (
+                255BF110D712F492DD94E434 /* Metadata */,
                 5CB070B5F3E094998EAB9952 /* Files */,
                 53E611F5DC1D607184D441D9 /* Actions */,
 			82A6730618EC844DCD473F5B /* Imaging */,
@@ -187,6 +197,12 @@
                 B4F14830812E9E0DF918CF23 /* ActionRunner.swift */,); path = Actions; sourceTree = "<group>"; };
         5CB070B5F3E094998EAB9952 /* Files */ = {isa = PBXGroup; children = (
                 1F339A338FFDBB37B937E64E /* BoundedLocalFileReader.swift */,); path = Files; sourceTree = "<group>"; };
+        0870C19CE8B586A20471C8E5 /* Metadata */ = {isa = PBXGroup; children = (
+                2CEBA35FC65E88E2D198534B /* MetadataWindowController.swift */,); path = Metadata; sourceTree = "<group>"; };
+        255BF110D712F492DD94E434 /* Metadata */ = {isa = PBXGroup; children = (
+                40145F79DFA743BA2F7A7D69 /* ImageMetadataReader.swift */,
+                3277908A0C4C1CB7855D63A7 /* ImageMetadata.swift */,
+                F937B1A62B6DF0899949B733 /* ImageContainerMetadata.swift */,); path = Metadata; sourceTree = "<group>"; };
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -269,6 +285,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+                AEF189EFEA8AF5FA549C1B3E /* MetadataWindowController.swift in Sources */,
                 60F1CA6DC30950E5BB30EC4E /* ActionsMenuController.swift in Sources */,
                 F366E820E51DDAA25648ED27 /* ActionRunner.swift in Sources */,
                 B062134DACF5FE2EEF0A4D45 /* NotificationObservation.swift in Sources */,
@@ -284,6 +301,9 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
         CF897B3B222D09A51B22A0AF = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (
+                ADF4F669B1A16B361DA84F02 /* ImageMetadataReader.swift in Sources */,
+                4626C9D436FC1676C4920370 /* ImageMetadata.swift in Sources */,
+                38D6FD4FD4439A82E2611DC5 /* ImageContainerMetadata.swift in Sources */,
                 5381D17AE92232AC6FE18682 /* BoundedLocalFileReader.swift in Sources */,
                 7CF85E0749A352677A09BD2F /* ImageAction.swift in Sources */,
                 78CFEEF061B0C13710173E89 /* ActionsConfigurationStore.swift in Sources */,
