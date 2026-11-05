@@ -19,7 +19,15 @@ public actor ActionsConfigurationStore {
 
     public func load() throws -> ActionsConfiguration {
         try ensureDefaultExists()
-        return try read(fileURL)
+        let url = fileURL
+        let data = try readData(url)
+        // A deliberately cleared file is the reset gesture. Invalid nonblank
+        // JSON and an explicit empty actions array must not be replaced.
+        if isBlank(data) {
+            try writeDefaults(to: url)
+            return .defaults
+        }
+        return try ActionsConfiguration.decode(data)
     }
 
     public func editableURL() throws -> URL {
@@ -73,9 +81,16 @@ public actor ActionsConfigurationStore {
     }
 
     private func read(_ url: URL) throws -> ActionsConfiguration {
-        let data: Data
-        do { data = try BoundedLocalFileReader.read(url, maximumBytes: 65_536) }
+        try ActionsConfiguration.decode(readData(url))
+    }
+
+    private func readData(_ url: URL) throws -> Data {
+        do { return try BoundedLocalFileReader.read(url, maximumBytes: 65_536) }
         catch { throw ActionsConfigurationError.invalid("Choose a readable, regular local JSON file no larger than 64 KB.") }
-        return try ActionsConfiguration.decode(data)
+    }
+
+    private func isBlank(_ data: Data) -> Bool {
+        let bytes = data.starts(with: [0xef, 0xbb, 0xbf]) ? data.dropFirst(3) : data[...]
+        return String(data: bytes, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == true
     }
 }

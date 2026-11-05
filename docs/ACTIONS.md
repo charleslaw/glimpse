@@ -1,18 +1,21 @@
 # Actions configuration
 
-**Actions → Edit Command Config…** always stays in the menu, including when the JSON is invalid or has no actions. By default it edits `~/Library/Application Support/Glimpse/actions.json` in TextEdit. Save as plain UTF-8 JSON. Returning to Glimpse reloads it; **Reload Actions** also reloads explicitly. Invalid configuration displays an error rather than running old actions.
+**Actions → Edit Command Config…** is the only management item and always stays in the menu, including when the JSON is invalid or has no actions. By default it edits `~/Library/Application Support/Glimpse/actions.json` in TextEdit. Save as plain UTF-8 JSON. Returning to Glimpse reloads it. Invalid nonblank configuration displays an error rather than running old actions and is not overwritten.
 
-**Choose Command Config…** validates another local JSON file before remembering it. **Reset Actions to Defaults…** asks for confirmation and moves the existing config to a uniquely named backup beside it before restoring these defaults:
+To reset, select all text, delete it and **save a blank file**. When you return to Glimpse, it regenerates these defaults. Whitespace-only files also reset. Valid JSON with `"actions": []` keeps an empty menu rather than resetting. Save a copy of your customized config first if you want to keep it.
 
 ```json
 {
   "version": 1,
+  "notes": "To reset the actions, save a blank file and Glimpse will regenerate the defaults.",
   "actions": [
     { "id": "copy-image-path", "title": "Copy Image Path", "kind": "copyImagePath" },
     { "id": "open-image-location", "title": "Open Image Location", "kind": "openImageLocation" }
   ]
 }
 ```
+
+The `notes` field is human-readable documentation, not a command. Older configs without it remain valid. If you previously selected another config file in an older Glimpse build, Edit Command Config still opens that remembered path and clearing it resets that file.
 
 Add HTTPS links using `openURL`, or a fixed absolute executable and separate arguments using `runCommand`. Available placeholders are `{filename}` (basename including extension) and `{filepath}` (absolute path). Filenames remain literal arguments, and URL substitutions are percent encoded. For example, append these objects to `actions`:
 

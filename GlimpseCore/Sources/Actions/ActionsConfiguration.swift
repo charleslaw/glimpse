@@ -3,16 +3,18 @@ import Foundation
 public struct ActionsConfiguration: Codable, Equatable, Sendable {
     public let version: Int
     public let actions: [ImageAction]
+    public let notes: String?
 
-    public init(version: Int = 1, actions: [ImageAction]) {
+    public init(version: Int = 1, actions: [ImageAction], notes: String? = nil) {
         self.version = version
         self.actions = actions
+        self.notes = notes
     }
 
     public static let defaults = ActionsConfiguration(actions: [
         ImageAction(id: "copy-image-path", title: "Copy Image Path", kind: .copyImagePath),
         ImageAction(id: "open-image-location", title: "Open Image Location", kind: .openImageLocation),
-    ])
+    ], notes: "To reset the actions, save a blank file and Glimpse will regenerate the defaults.")
 
     public static func decode(_ data: Data) throws -> ActionsConfiguration {
         guard data.count <= 65_536 else { throw ActionsConfigurationError.invalid("Config files must be 64 KB or smaller.") }
@@ -29,6 +31,9 @@ public struct ActionsConfiguration: Codable, Equatable, Sendable {
     }
 
     private func validate() throws {
+        guard (notes?.utf8.count ?? 0) <= 8_192 else {
+            throw ActionsConfigurationError.invalid("Config notes must be 8 KB or smaller.")
+        }
         guard version == 1, actions.count <= 64 else { throw ActionsConfigurationError.invalid("Use version 1 with at most 64 actions.") }
         var ids = Set<String>()
         for action in actions {

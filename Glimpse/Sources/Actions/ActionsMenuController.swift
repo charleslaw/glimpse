@@ -1,6 +1,5 @@
 import AppKit
 import GlimpseCore
-import UniformTypeIdentifiers
 
 @MainActor
 final class ActionsMenuController: NSObject, NSMenuDelegate {
@@ -60,11 +59,8 @@ final class ActionsMenuController: NSObject, NSMenuDelegate {
             }
         }
         menu.addItem(.separator())
-        // These controls are unconditional, even for empty or invalid JSON.
+        // Editing stays available even for empty or invalid JSON.
         addManagement("Edit Command Config…", action: #selector(editConfig))
-        addManagement("Reload Actions", action: #selector(reloadActions))
-        addManagement("Choose Command Config…", action: #selector(chooseConfig))
-        addManagement("Reset Actions to Defaults…", action: #selector(resetConfig))
     }
 
     private func addManagement(_ title: String, action: Selector) {
@@ -78,8 +74,6 @@ final class ActionsMenuController: NSObject, NSMenuDelegate {
         runner.run(action, file: file)
     }
 
-    @objc private func reloadActions() { reload() }
-
     @objc private func editConfig() {
         let store = store
         Task { @MainActor [weak self] in
@@ -89,33 +83,6 @@ final class ActionsMenuController: NSObject, NSMenuDelegate {
                     _ = try await NSWorkspace.shared.open([url], withApplicationAt: editor, configuration: NSWorkspace.OpenConfiguration())
                 } else { NSWorkspace.shared.open(url) }
             } catch { self?.show(error) }
-        }
-    }
-
-    @objc private func chooseConfig() {
-        let panel = NSOpenPanel()
-        panel.title = "Choose Command Config"
-        panel.allowedContentTypes = [.json]
-        panel.allowsMultipleSelection = false
-        guard panel.runModal() == .OK, let url = panel.url else { return }
-        let store = store
-        Task { @MainActor [weak self] in
-            do { try await store.choose(url); self?.reload() }
-            catch { self?.show(error) }
-        }
-    }
-
-    @objc private func resetConfig() {
-        let alert = NSAlert()
-        alert.messageText = "Reset Actions to Defaults?"
-        alert.informativeText = "The current config will be backed up beside the original file before restoring the two default actions."
-        alert.addButton(withTitle: "Reset Actions")
-        alert.addButton(withTitle: "Cancel")
-        guard alert.runModal() == .alertFirstButtonReturn else { return }
-        let store = store
-        Task { @MainActor [weak self] in
-            do { try await store.reset(); self?.reload() }
-            catch { self?.show(error) }
         }
     }
 

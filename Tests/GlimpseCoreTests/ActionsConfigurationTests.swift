@@ -5,6 +5,50 @@ final class ActionsConfigurationTests: XCTestCase {
     func testDefaultsRoundTripAndContainTheTwoRequestedActions() throws {
         let value = try ActionsConfiguration.decode(ActionsConfiguration.defaults.encoded())
         XCTAssertEqual(value.actions.map(\.kind), [.copyImagePath, .openImageLocation])
+        XCTAssertEqual(value.notes, "To reset the actions, save a blank file and Glimpse will regenerate the defaults.")
+    }
+
+    func testBlankAndWhitespaceOnlyFilesRegenerateDefaultsIncludingNotes() async throws {
+        let folder = try TemporaryFolder()
+        let url = folder.url.appendingPathComponent("actions.json")
+        let store = ActionsConfigurationStore(defaultURL: url, preferencesSuite: "GlimpseTests.\(UUID())")
+        for text in ["", " \n\t\r", "\u{feff} \n", "\u{2003}\n"] {
+            try Data(text.utf8).write(to: url)
+            let restored = try await store.load()
+            XCTAssertEqual(restored, .defaults)
+            XCTAssertEqual(try ActionsConfiguration.decode(Data(contentsOf: url)), .defaults)
+        }
+    }
+
+    func testExplicitEmptyActionsArePreservedByLoading() async throws {
+        let folder = try TemporaryFolder()
+        let original = Data("{\"version\":1,\"actions\":[]}".utf8)
+        let url = try folder.file("actions.json", data: original)
+        let store = ActionsConfigurationStore(defaultURL: url, preferencesSuite: "GlimpseTests.\(UUID())")
+        let config = try await store.load()
+        XCTAssertTrue(config.actions.isEmpty)
+        XCTAssertNil(config.notes)
+        XCTAssertEqual(try Data(contentsOf: url), original)
+    }
+
+    func testCustomNotesRoundTripAndOlderFilesRemainValid() throws {
+        let config = ActionsConfiguration(actions: [], notes: "Personal commands")
+        XCTAssertEqual(try ActionsConfiguration.decode(config.encoded()), config)
+        let old = try ActionsConfiguration.decode(Data("{\"version\":1,\"actions\":[]}".utf8))
+        XCTAssertNil(old.notes)
+        XCTAssertThrowsError(try ActionsConfiguration(actions: [], notes: String(repeating: "a", count: 8_193)).encoded())
+    }
+
+    func testPreviouslySelectedConfigAlsoRegeneratesWhenCleared() async throws {
+        let folder = try TemporaryFolder()
+        let url = try folder.file("chosen.json", data: ActionsConfiguration.defaults.encoded())
+        let store = ActionsConfigurationStore(defaultURL: folder.url.appendingPathComponent("default.json"),
+                                              preferencesSuite: "GlimpseTests.\(UUID())")
+        try await store.choose(url)
+        try Data().write(to: url)
+        let restored = try await store.load()
+        XCTAssertEqual(restored, .defaults)
+        XCTAssertEqual(try ActionsConfiguration.decode(Data(contentsOf: url)), .defaults)
     }
 
     func testEmptyActionsAreValidSoManagementCanRemainAvailable() throws {
