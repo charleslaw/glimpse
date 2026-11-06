@@ -1,6 +1,6 @@
 # Actions configuration
 
-**Actions → Edit Command Config…** is the only management item and always stays in the menu, including when the JSON is invalid or has no actions. By default it edits `~/Library/Application Support/Glimpse/actions.json` in TextEdit. Save as plain UTF-8 JSON. Returning to Glimpse reloads it. Invalid nonblank configuration displays an error rather than running old actions and is not overwritten.
+**Actions → Edit Command Config…** is the only management item and always stays in the menu, including when the JSON is invalid or has no actions. By default it edits `~/Library/Application Support/Glimpse/actions.json` in TextEdit. Save as plain UTF-8 JSON. Returning to Glimpse reloads it. Bad configuration shows an error with a repair hint, then uses the two default actions: Copy Image Path and Open Image Location. The bad file is kept for editing. The same error is reported once until it changes or a valid config loads.
 
 To reset, select all text, delete it and **save a blank file**. When you return to Glimpse, it regenerates these defaults. Whitespace-only files also reset. Valid JSON with `"actions": []` keeps an empty menu rather than resetting. Save a copy of your customized config first if you want to keep it.
 

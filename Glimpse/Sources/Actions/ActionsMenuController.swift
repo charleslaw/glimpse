@@ -9,6 +9,7 @@ final class ActionsMenuController: NSObject, NSMenuDelegate {
     private let currentFile: () -> URL?
     private var configuration = ActionsConfiguration.defaults
     private var configError: String?
+    private var reportedError: String?
     private var reloadTask: Task<Void, Never>?
 
     init(currentFile: @escaping () -> URL?) {
@@ -31,11 +32,17 @@ final class ActionsMenuController: NSObject, NSMenuDelegate {
                 guard let self, !Task.isCancelled else { return }
                 self.configuration = configuration
                 self.configError = nil
+                self.reportedError = nil
                 self.rebuild()
             } catch {
                 guard let self, !Task.isCancelled else { return }
-                self.configError = error.localizedDescription
+                self.configuration = .defaults
+                let message = error.localizedDescription
+                self.configError = message
                 self.rebuild()
+                guard self.reportedError != message else { return }
+                self.reportedError = message
+                self.showConfigError(message)
             }
         }
     }
@@ -50,13 +57,12 @@ final class ActionsMenuController: NSObject, NSMenuDelegate {
             let errorItem = menu.addItem(withTitle: "Actions config needs attention", action: nil, keyEquivalent: "")
             errorItem.isEnabled = false
             errorItem.toolTip = configError
-        } else {
-            for action in configuration.actions {
-                let item = menu.addItem(withTitle: action.title, action: #selector(runAction(_:)), keyEquivalent: "")
-                item.target = self
-                item.representedObject = action
-                item.isEnabled = currentFile() != nil
-            }
+        }
+        for action in configuration.actions {
+            let item = menu.addItem(withTitle: action.title, action: #selector(runAction(_:)), keyEquivalent: "")
+            item.target = self
+            item.representedObject = action
+            item.isEnabled = currentFile() != nil
         }
         menu.addItem(.separator())
         // Editing stays available even for empty or invalid JSON.
@@ -91,5 +97,14 @@ final class ActionsMenuController: NSObject, NSMenuDelegate {
         alert.messageText = "Actions Config Could Not Be Opened"
         alert.informativeText = error.localizedDescription
         alert.runModal()
+    }
+
+    private func showConfigError(_ message: String) {
+        let alert = NSAlert()
+        alert.messageText = "Actions Config Needs Attention"
+        alert.informativeText = "\(message)\n\nUsing the two default actions: Copy Image Path and Open Image Location.\n\nUse Edit Command Config… to fix the file. Check JSON quotes, commas and brackets, and keep version 1 with an actions array. Save a blank file to regenerate the defaults."
+        alert.addButton(withTitle: "Use Default Actions")
+        alert.addButton(withTitle: "Edit Command Config…")
+        if alert.runModal() == .alertSecondButtonReturn { editConfig() }
     }
 }

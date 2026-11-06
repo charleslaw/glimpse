@@ -126,4 +126,13 @@ final class ActionCommandTests: XCTestCase {
             XCTAssertThrowsError(try ActionsConfiguration(actions: [action]).encoded())
         }
     }
+
+    func testBadConfigErrorsExplainWhereToFixTheFile() {
+        for (json, hint) in [("{bad json", "JSON"),
+                             (#"{"version":1}"#, "actions"),
+                             (#"{"version":1,"actions":[{"label":"Open","cmd":123}]}"#, "config.actions[0].cmd")] {
+            do { _ = try ActionsConfiguration.decode(Data(json.utf8)); XCTFail("Invalid config was accepted") }
+            catch { XCTAssertTrue(error.localizedDescription.contains(hint), error.localizedDescription) }
+        }
+    }
 }

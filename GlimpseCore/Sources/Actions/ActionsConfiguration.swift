@@ -37,9 +37,23 @@ public struct ActionsConfiguration: Codable, Equatable, Sendable {
 
     public static func decode(_ data: Data) throws -> ActionsConfiguration {
         guard data.count <= 65_536 else { throw ActionsConfigurationError.invalid("Config files must be 64 KB or smaller.") }
-        let value = try JSONDecoder().decode(Self.self, from: data)
-        try value.validate()
-        return value
+        do {
+            let value = try JSONDecoder().decode(Self.self, from: data)
+            try value.validate()
+            return value
+        } catch let error as DecodingError {
+            switch error {
+            case .dataCorrupted(let context):
+                let detail = (context.underlyingError as NSError?)?.userInfo[NSDebugDescriptionErrorKey] as? String
+                throw ActionsConfigurationError.invalid("Invalid JSON. \(detail ?? "Check double quotes, commas and matching brackets.")")
+            case .keyNotFound(let key, let context):
+                throw ActionsConfigurationError.invalid("Missing '\(key.stringValue)' at \(Self.configPath(context.codingPath)).")
+            case .typeMismatch(_, let context), .valueNotFound(_, let context):
+                throw ActionsConfigurationError.invalid("Invalid value at \(Self.configPath(context.codingPath)). \(context.debugDescription)")
+            @unknown default:
+                throw ActionsConfigurationError.invalid("The actions config is not valid version-1 JSON.")
+            }
+        }
     }
 
     public func encoded() throws -> Data {
@@ -47,6 +61,12 @@ public struct ActionsConfiguration: Codable, Equatable, Sendable {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
         return try encoder.encode(self)
+    }
+
+    private static func configPath(_ keys: [CodingKey]) -> String {
+        keys.reduce("config") { path, key in
+            key.intValue.map { path + "[\($0)]" } ?? (path + "." + key.stringValue)
+        }
     }
 
     private func validate() throws {
