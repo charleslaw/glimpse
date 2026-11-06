@@ -4,7 +4,8 @@ import XCTest
 final class ActionsConfigurationTests: XCTestCase {
     func testDefaultsRoundTripAndContainTheTwoRequestedActions() throws {
         let value = try ActionsConfiguration.decode(ActionsConfiguration.defaults.encoded())
-        XCTAssertEqual(value.actions.map(\.kind), [.copyImagePath, .openImageLocation])
+        XCTAssertEqual(value.actions.map(\.kind), [.runCommand, .runCommand])
+        XCTAssertEqual(value.actions.map(\.command), [#"echo "{filepath}" | pbcopy"#, "open {parentpath}"])
         XCTAssertEqual(value.notes, "To reset the actions, save a blank file and Glimpse will regenerate the defaults.")
     }
 
@@ -159,7 +160,8 @@ final class ActionsConfigurationTests: XCTestCase {
         let data = Data("invalid json".utf8)
         let url = try folder.file("actions.json", data: data)
         let store = ActionsConfigurationStore(defaultURL: url, preferencesSuite: "GlimpseTests.\(UUID())")
-        do { _ = try await store.load(); XCTFail("Invalid config accepted") } catch {}
+        do { _ = try await store.load(); XCTFail("Invalid config accepted") }
+        catch { XCTAssertTrue(error.localizedDescription.contains("JSON"), error.localizedDescription) }
         XCTAssertEqual(try Data(contentsOf: url), data)
         let editable = try await store.editableURL()
         XCTAssertEqual(editable, url)

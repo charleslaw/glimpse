@@ -12,30 +12,11 @@ public struct ActionCommand: Equatable, Sendable {
     }
 
     public static func parse(_ command: String) throws -> ActionCommand {
-        guard command.utf8.count <= 8_192, !command.utf8.contains(0) else {
-            throw ActionsConfigurationError.invalid("Commands must be 8 KB or smaller and contain no null bytes.")
+        let pipeline = try ActionPipeline.parse(command)
+        guard pipeline.stages.count == 1, let stage = pipeline.stages.first else {
+            throw ActionsConfigurationError.invalid("This operation needs a single command, not a pipeline.")
         }
-        var tokens: [String] = [], token = "", quote: Character?, escaped = false, started = false
-        for character in command {
-            if escaped { token.append(character); escaped = false; started = true; continue }
-            if character == "\\", quote != "'" { escaped = true; started = true; continue }
-            if let active = quote {
-                if character == active { quote = nil } else { token.append(character) }
-                continue
-            }
-            if character == "\"" || character == "'" { quote = character; started = true }
-            else if character.isWhitespace {
-                if started { tokens.append(token); token = ""; started = false }
-            } else { token.append(character); started = true }
-        }
-        guard quote == nil, !escaped else {
-            throw ActionsConfigurationError.invalid("Close all quotes and escapes in the command.")
-        }
-        if started { tokens.append(token) }
-        guard let executable = tokens.first, !executable.isEmpty, tokens.count <= 33 else {
-            throw ActionsConfigurationError.invalid("Enter a command followed by at most 32 arguments.")
-        }
-        return ActionCommand(executable: executable, arguments: Array(tokens.dropFirst()))
+        return stage
     }
 
     public static func isBareExecutable(_ name: String) -> Bool {
@@ -49,7 +30,7 @@ public struct ActionCommand: Equatable, Sendable {
     }
 
     public func validateGoogleLensArguments() throws {
-        guard arguments.isEmpty || (arguments.count == 1 && ["{fname}", "{filename}", "{fpath}", "{filepath}"].contains(arguments[0])) else {
+        guard arguments.isEmpty || (arguments.count == 1 && ["{filename}", "{filepath}"].contains(arguments[0])) else {
             throw ActionsConfigurationError.invalid("Use google-lens {filepath} to prepare a search for the selected image.")
         }
     }

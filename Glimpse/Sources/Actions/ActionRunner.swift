@@ -4,8 +4,7 @@ import GlimpseCore
 
 @MainActor
 final class ActionRunner {
-    private var commands: [ObjectIdentifier: Process] = [:]
-    private var deadlines: [ObjectIdentifier: Task<Void, Never>] = [:]
+    private var pipelines: [UUID: ProcessPipeline] = [:]
 
     func run(_ action: ImageAction, file: URL) {
         do {
@@ -34,21 +33,19 @@ final class ActionRunner {
     }
 
     func cancelAll() {
-        deadlines.values.forEach { $0.cancel() }
-        deadlines.removeAll()
-        commands.values.filter(\.isRunning).forEach { $0.terminate() }
-        commands.removeAll()
+        pipelines.values.forEach { $0.cancel() }
+        pipelines.removeAll()
     }
 
     private func runCommand(_ action: ImageAction, file: URL) throws {
-        guard commands.count < 4 else {
+        guard pipelines.count < 4 else {
             throw Failure.message("Wait for a running action to finish before starting another.")
         }
-        let template: ActionCommand
-        if let command = action.command { template = try ActionCommand.parse(command) }
-        else if let path = action.executable { template = ActionCommand(executable: path, arguments: action.arguments ?? []) }
+        let templates: [ActionCommand]
+        if let command = action.command { templates = try ActionPipeline.parse(command).stages }
+        else if let path = action.executable { templates = [ActionCommand(executable: path, arguments: action.arguments ?? [])] }
         else { throw Failure.message("The action has no command.") }
-        if template.executable == "google-lens" {
+        if let template = templates.first, template.executable == "google-lens" {
             try template.validateGoogleLensArguments()
             guard confirm(title: action.title,
                           details: "Google Lens will open and this image will be selected in Finder. Drag it into Lens, or choose Upload a file.\n\n\(file.path)\n\nThe image is uploaded only when you submit it in the browser.",
@@ -59,50 +56,41 @@ final class ActionRunner {
             NSWorkspace.shared.activateFileViewerSelecting([file])
             return
         }
-        let resolved = try template.resolved()
-        let executable = URL(fileURLWithPath: resolved.executable)
-        _ = try ActionsConfiguration(actions: [ImageAction(id: action.id, title: action.title, kind: .runCommand,
-                                                           executable: executable.path, arguments: resolved.arguments)]).encoded()
-        guard (try? executable.resourceValues(forKeys: [.isRegularFileKey]))?.isRegularFile == true,
-              FileManager.default.isExecutableFile(atPath: executable.path) else {
-            throw Failure.message("The configured executable is missing or is not executable.")
+        let commands = try templates.map { template -> ActionCommand in
+            let resolved = try template.resolved()
+            let executable = URL(fileURLWithPath: resolved.executable)
+            _ = try ActionsConfiguration(actions: [ImageAction(id: "stage", title: action.title, kind: .runCommand,
+                                                               executable: executable.path, arguments: resolved.arguments)]).encoded()
+            guard (try? executable.resourceValues(forKeys: [.isRegularFileKey]))?.isRegularFile == true,
+                  FileManager.default.isExecutableFile(atPath: executable.path) else {
+                throw Failure.message("The configured executable is missing or is not executable: \(executable.path)")
+            }
+            // Do not bypass macOS download approval by launching a quarantined executable directly.
+            guard getxattr(executable.path, "com.apple.quarantine", nil, 0, 0, 0) < 0, errno == ENOATTR else {
+                throw Failure.message("This executable is quarantined or could not be checked. Inspect and approve it in macOS before using it here.")
+            }
+            // Parsing happened before substitution: filename characters never become operators.
+            return ActionCommand(executable: executable.path, arguments: resolved.expandedArguments(for: file))
         }
-        // Do not bypass macOS download approval by launching a quarantined executable directly.
-        guard getxattr(executable.path, "com.apple.quarantine", nil, 0, 0, 0) < 0, errno == ENOATTR else {
-            throw Failure.message("This executable is quarantined or could not be checked. Inspect and approve it in macOS before using it here.")
-        }
-        let arguments = resolved.expandedArguments(for: file)
-        guard arguments.reduce(0, { $0 + $1.utf8.count }) <= 131_072 else {
+        guard commands.flatMap(\.arguments).reduce(0, { $0 + $1.utf8.count }) <= 131_072 else {
             throw Failure.message("The expanded command arguments are too large.")
         }
+        let details = commands.map { command in
+            command.executable + " " + command.arguments.map { String(reflecting: $0) }.joined(separator: " ")
+        }.joined(separator: "\n  | ")
         guard confirm(title: action.title,
-                      details: "This runs a command from your actions file.\n\nExecutable: \(executable.path)\nFolder: \(file.deletingLastPathComponent().path)\nArguments: \(arguments.map { String(reflecting: $0) }.joined(separator: " "))",
+                      details: "This runs commands from your actions file.\n\nFolder: \(file.deletingLastPathComponent().path)\n\n\(details)",
                       button: "Run Command") else { return }
-        let process = Process()
-        process.executableURL = executable
-        process.currentDirectoryURL = file.deletingLastPathComponent()
-        // Each argument remains a single value; no shell parses substituted filenames.
-        process.arguments = arguments
-        process.standardInput = FileHandle.nullDevice
-        process.standardOutput = FileHandle.nullDevice
-        process.standardError = FileHandle.nullDevice
-        let id = ObjectIdentifier(process)
-        process.terminationHandler = { [weak self] finished in
-            let status = finished.terminationStatus
-            Task { @MainActor [weak self] in
-                guard let self else { return }
-                self.deadlines.removeValue(forKey: id)?.cancel()
-                self.commands.removeValue(forKey: id)
-                if status != 0 { self.show(Failure.message("The action exited with status \(status).")) }
+        let id = UUID()
+        let pipeline = ProcessPipeline(commands: commands, directory: file.deletingLastPathComponent()) { [weak self] statuses in
+            guard let self else { return }
+            self.pipelines.removeValue(forKey: id)
+            if let index = statuses.firstIndex(where: { $0 != 0 }) {
+                self.show(Failure.message("\(commands[index].executable) exited with status \(statuses[index])."))
             }
         }
-        try process.run()
-        commands[id] = process
-        deadlines[id] = Task { @MainActor [weak process] in
-            do { try await Task.sleep(nanoseconds: 30_000_000_000) }
-            catch { return }
-            if let process, process.isRunning { process.terminate() }
-        }
+        try pipeline.start()
+        pipelines[id] = pipeline
     }
 
     private func confirm(title: String, details: String, button: String) -> Bool {

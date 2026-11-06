@@ -3,9 +3,9 @@ import XCTest
 
 final class ActionCommandTests: XCTestCase {
     func testStringsAndLabelCommandObjectsMixWithExistingActions() throws {
-        let json = #"{"version":1,"actions":["chrome {fname}",{"label":"Open dir","cmd":"open {ppath}"},{"id":"copy","title":"Copy","kind":"copyImagePath"}]}"#
+        let json = #"{"version":1,"actions":["chrome {filename}",{"label":"Open dir","cmd":"open {parentpath}"},{"id":"copy","title":"Copy","kind":"copyImagePath"}]}"#
         let config = try ActionsConfiguration.decode(Data(json.utf8))
-        XCTAssertEqual(config.actions.map(\.title), ["chrome {fname}", "Open dir", "Copy"])
+        XCTAssertEqual(config.actions.map(\.title), ["chrome {filename}", "Open dir", "Copy"])
         XCTAssertEqual(config.actions.map(\.kind), [.runCommand, .runCommand, .copyImagePath])
         XCTAssertEqual(Set(config.actions.map(\.id)).count, 3)
         XCTAssertEqual(try ActionsConfiguration.decode(config.encoded()), config)
@@ -15,20 +15,20 @@ final class ActionCommandTests: XCTestCase {
         let command = try ActionCommand.parse(#"tool "two words" 'literal text' escaped\ space "" "a\"b""#)
         XCTAssertEqual(command.executable, "tool")
         XCTAssertEqual(command.arguments, ["two words", "literal text", "escaped space", "", "a\"b"])
-        let operators = try ActionCommand.parse("tool ; | & $(whoami)")
+        let operators = try ActionCommand.parse(#"tool ; "|" & $(whoami)"#)
         XCTAssertEqual(operators.arguments, [";", "|", "&", "$(whoami)"])
     }
 
     func testSubstitutionCannotIntroduceArgumentsOrExpandFilenameTokensAgain() throws {
-        let file = URL(fileURLWithPath: "/tmp/folder with spaces/a '{ppath}' $(touch unsafe).png")
-        let command = try ActionCommand.parse(#"tool {fname} "{filepath}" {ppath} "--name={filename}" {fpath}"#)
+        let file = URL(fileURLWithPath: "/tmp/folder with spaces/a '{parentpath}' $(touch unsafe).png")
+        let command = try ActionCommand.parse(#"tool {filename} "{filepath}" {parentpath} "--name={filename}" {filepath}"#)
         XCTAssertEqual(command.expandedArguments(for: file), [file.lastPathComponent, file.path,
                        file.deletingLastPathComponent().path, "--name=" + file.lastPathComponent, file.path])
     }
 
-    func testNewURLAliasesArePercentEncoded() throws {
+    func testURLPlaceholdersArePercentEncoded() throws {
         let action = ImageAction(id: "url", title: "URL", kind: .openURL,
-                                 url: "https://example.com/?name={fname}&parent={ppath}")
+                                 url: "https://example.com/?name={filename}&parent={parentpath}")
         _ = try ActionsConfiguration(actions: [action]).encoded()
         let file = URL(fileURLWithPath: "/tmp/folder&other=1/photo#name.png")
         let url = try XCTUnwrap(action.expandedURL(for: file))
@@ -46,11 +46,11 @@ final class ActionCommandTests: XCTestCase {
     func testCommandsRejectAmbiguityUnknownTokensAndInlineInterpreters() {
         let invalid = [
             #"{"label":"A","cmd":"open {unknown}"}"#,
-            #"{"label":"A","cmd":"../open {fname}"}"#,
-            #"{"label":"A","cmd":"{fname} x"}"#,
-            #"{"label":"A","cmd":"sh -c 'echo {fname}'"}"#,
-            #"{"label":"A","cmd":"open {fname}","arguments":[]}"#,
-            #"{"label":"A","cmd":"open {fname}","kind":"copyImagePath"}"#,
+            #"{"label":"A","cmd":"../open {filename}"}"#,
+            #"{"label":"A","cmd":"{filename} x"}"#,
+            #"{"label":"A","cmd":"sh -c 'echo {filename}'"}"#,
+            #"{"label":"A","cmd":"open {filename}","arguments":[]}"#,
+            #"{"label":"A","cmd":"open {filename}","kind":"copyImagePath"}"#,
         ]
         for action in invalid {
             XCTAssertThrowsError(try ActionsConfiguration.decode(Data("{\"version\":1,\"actions\":[\(action)]}".utf8)))
@@ -61,7 +61,7 @@ final class ActionCommandTests: XCTestCase {
         let folder = try TemporaryFolder()
         let executable = try folder.file("my-viewer", data: Data("#!/bin/sh\nexit 0\n".utf8))
         try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: executable.path)
-        let command = try ActionCommand.parse("my-viewer {fname}")
+        let command = try ActionCommand.parse("my-viewer {filename}")
         XCTAssertThrowsError(try command.resolved(searchDirectories: []))
         XCTAssertEqual(try command.resolved(searchDirectories: [folder.url]).executable, executable.resolvingSymlinksInPath().path)
         let alias = folder.url.appendingPathComponent("alias")
@@ -71,23 +71,24 @@ final class ActionCommandTests: XCTestCase {
     }
 
     func testChromeUsesNativeAppOpeningRatherThanATimedBrowserProcess() throws {
-        let command = try ActionCommand.parse("chrome {fname}").resolved()
+        let command = try ActionCommand.parse("chrome {filename}").resolved()
         XCTAssertEqual(command.executable, "/usr/bin/open")
-        XCTAssertEqual(command.arguments, ["-b", "com.google.Chrome", "--", "{fname}"])
+        XCTAssertEqual(command.arguments, ["-b", "com.google.Chrome", "--", "{filename}"])
     }
 
     func testOpeningConfigRepairsNotesWithoutChangingCommandSyntaxOrOtherFields() async throws {
         let folder = try TemporaryFolder()
-        let url = try folder.file("actions.json", data: Data(#"{"version":1,"notes":"changed","actions":["chrome {fname}",{"label":"Open dir","cmd":"open {ppath}"}],"personal":{"keep":true}}"#.utf8))
+        let url = try folder.file("actions.json", data: Data(#"{"version":1,"notes":"changed","actions":["chrome {filename}",{"label":"Open dir","cmd":"open {parentpath}"}],"personal":{"keep":true}}"#.utf8))
         let store = ActionsConfigurationStore(defaultURL: url, preferencesSuite: "GlimpseTests.\(UUID())")
         _ = try await store.editableURL()
         let object = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(contentsOf: url)) as? [String: Any])
         XCTAssertEqual(object["notes"] as? String, ActionsConfiguration.requiredNotes)
         XCTAssertEqual(object["variables"] as? [String: String], ActionsConfiguration.standardVariables)
-        XCTAssertEqual(object["examples"] as? [String: String], ActionsConfiguration.standardExamples)
+        let examples = try XCTUnwrap(object["examples"] as? [[String: String]])
+        XCTAssertEqual(examples.map { Set($0.keys) }, Array(repeating: Set(["label", "cmd"]), count: 3))
         let actions = try XCTUnwrap(object["actions"] as? [Any])
-        XCTAssertEqual(actions[0] as? String, "chrome {fname}")
-        XCTAssertEqual(actions[1] as? [String: String], ["label": "Open dir", "cmd": "open {ppath}"])
+        XCTAssertEqual(actions[0] as? String, "chrome {filename}")
+        XCTAssertEqual(actions[1] as? [String: String], ["label": "Open dir", "cmd": "open {parentpath}"])
         XCTAssertEqual((object["personal"] as? [String: Bool])?["keep"], true)
         XCTAssertEqual((try FileManager.default.attributesOfItem(atPath: url.path)[.posixPermissions] as? NSNumber)?.intValue, 0o600)
         let once = try Data(contentsOf: url)
@@ -97,14 +98,14 @@ final class ActionCommandTests: XCTestCase {
 
     func testOpeningOldConfigInsertsMissingNoteAndPreservesActionsAcrossStoreInstances() async throws {
         let folder = try TemporaryFolder()
-        let url = try folder.file("actions.json", data: Data(#"{"version":1,"actions":[{"label":"Open dir","cmd":"open {ppath}"}]}"#.utf8))
+        let url = try folder.file("actions.json", data: Data(#"{"version":1,"actions":[{"label":"Open dir","cmd":"open {parentpath}"}]}"#.utf8))
         let suite = "GlimpseTests.\(UUID())"
         let first = ActionsConfigurationStore(defaultURL: url, preferencesSuite: suite)
         _ = try await first.editableURL()
         let saved = try Data(contentsOf: url)
         let reinstalled = ActionsConfigurationStore(defaultURL: url, preferencesSuite: suite)
         let config = try await reinstalled.load()
-        XCTAssertEqual(config.actions.first?.command, "open {ppath}")
+        XCTAssertEqual(config.actions.first?.command, "open {parentpath}")
         XCTAssertEqual(config.notes, ActionsConfiguration.requiredNotes)
         XCTAssertEqual(try Data(contentsOf: url), saved)
     }
@@ -112,16 +113,16 @@ final class ActionCommandTests: XCTestCase {
     func testDefaultsDocumentAllVariablesAndGoogleLensExampleWithoutAddingActions() throws {
         let config = try ActionsConfiguration.decode(ActionsConfiguration.defaults.encoded())
         XCTAssertEqual(Set(config.variables?.keys.map { $0 } ?? []), Set(ActionPlaceholders.names.map { "{\($0)}" }))
-        XCTAssertEqual(config.examples?["Google image search"], "google-lens {filepath}")
+        XCTAssertEqual(config.examples?.first { $0.title == "Google image search" }?.command, "google-lens {filepath}")
         XCTAssertEqual(config.actions.count, 2)
     }
 
     func testGoogleLensHelperOnlyAcceptsSelectedImageTokens() throws {
-        for argument in ["", " {filepath}", " {fname}"] {
+        for argument in ["", " {filepath}", " {filename}"] {
             let action = ImageAction(id: "lens", title: "Lens", kind: .runCommand, command: "google-lens" + argument)
             XCTAssertNoThrow(try ActionsConfiguration(actions: [action]).encoded())
         }
-        for argument in [" {ppath}", " /other/private/file.png", " {fpath} extra"] {
+        for argument in [" {parentpath}", " /other/private/file.png", " {filepath} extra"] {
             let action = ImageAction(id: "lens", title: "Lens", kind: .runCommand, command: "google-lens" + argument)
             XCTAssertThrowsError(try ActionsConfiguration(actions: [action]).encoded())
         }

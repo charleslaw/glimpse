@@ -27,7 +27,9 @@ public actor ActionsConfigurationStore {
             try writeDefaults(to: url)
             return .defaults
         }
-        return try ActionsConfiguration.decode(data)
+        let updated = try normalized(data, refreshHelp: false)
+        if updated != data { try write(updated, to: url) }
+        return try ActionsConfiguration.decode(updated)
     }
 
     public func editableURL() throws -> URL {
@@ -37,22 +39,9 @@ public actor ActionsConfigurationStore {
         // contents with defaults just to insert documentation.
         guard let data = try? readData(url) else { return url }
         if isBlank(data) { try writeDefaults(to: url); return url }
-        guard var object = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] else { return url }
-        if object["notes"] as? String != ActionsConfiguration.requiredNotes ||
-            object["variables"] as? [String: String] != ActionsConfiguration.standardVariables ||
-            object["examples"] as? [String: String] != ActionsConfiguration.standardExamples {
-            object["notes"] = ActionsConfiguration.requiredNotes
-            object["variables"] = ActionsConfiguration.standardVariables
-            object["examples"] = ActionsConfiguration.standardExamples
-            let updated = try JSONSerialization.data(withJSONObject: object, options: [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes])
-            guard updated.count <= 65_536 else {
-                throw ActionsConfigurationError.invalid("Adding the required notes would exceed the 64 KB config limit. Reduce the file size first.")
-            }
-            // Preserve original action syntax and unknown user fields rather
-            // than round-tripping through the normalized execution model.
-            try updated.write(to: url, options: .atomic)
-            try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: url.path)
-        }
+        // A malformed config remains available for repair without modifying it.
+        guard let updated = try? normalized(data, refreshHelp: true) else { return url }
+        if updated != data { try write(updated, to: url) }
         return url
     }
 
@@ -85,6 +74,59 @@ public actor ActionsConfigurationStore {
             throw error
         }
         return backup
+    }
+
+    /// Upgrade old built-ins and abbreviated tokens without discarding user fields.
+    /// Validation precedes writing, so a bad config remains intact for repair.
+    private func normalized(_ data: Data, refreshHelp: Bool) throws -> Data {
+        guard var object = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any],
+              let actions = object["actions"] as? [Any] else {
+            _ = try ActionsConfiguration.decode(data)
+            return data
+        }
+        func fullNames(_ template: String) -> String {
+            template.replacingOccurrences(of: "{fname}", with: "{filename}")
+                .replacingOccurrences(of: "{fpath}", with: "{filepath}")
+                .replacingOccurrences(of: "{ppath}", with: "{parentpath}")
+        }
+        let migrated: [Any] = actions.map { value in
+            if let command = value as? String { return fullNames(command) }
+            guard var action = value as? [String: Any] else { return value }
+            if let kind = action["kind"] as? String,
+               kind == "copyImagePath" || kind == "openImageLocation" {
+                action["label"] = action["label"] ?? action["title"] ?? (kind == "copyImagePath" ? "Copy Image Path" : "Open Image Location")
+                action["cmd"] = kind == "copyImagePath" ? "echo \"{filepath}\" | pbcopy" : "open {parentpath}"
+                for key in ["id", "kind", "title", "executable", "arguments", "url"] { action.removeValue(forKey: key) }
+            }
+            for key in ["cmd", "url"] {
+                if let template = action[key] as? String { action[key] = fullNames(template) }
+            }
+            if let arguments = action["arguments"] as? [String] { action["arguments"] = arguments.map(fullNames) }
+            if action["cmd"] != nil, action["label"] == nil, let title = action.removeValue(forKey: "title") { action["label"] = title }
+            return action
+        }
+        let changed = !NSArray(array: actions).isEqual(to: migrated)
+        object["actions"] = migrated
+        if changed || refreshHelp {
+            object["notes"] = ActionsConfiguration.requiredNotes
+            object["variables"] = ActionsConfiguration.standardVariables
+            let defaults = try JSONSerialization.jsonObject(with: ActionsConfiguration.defaults.encoded()) as? [String: Any]
+            object["examples"] = defaults?["examples"]
+        }
+        // Avoid rewriting unchanged files (including formatting and explicit empty arrays).
+        let original = try JSONSerialization.jsonObject(with: data) as? NSDictionary
+        if original?.isEqual(to: object) == true {
+            _ = try ActionsConfiguration.decode(data)
+            return data
+        }
+        let updated = try JSONSerialization.data(withJSONObject: object, options: [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes])
+        _ = try ActionsConfiguration.decode(updated)
+        return updated
+    }
+
+    private func write(_ data: Data, to url: URL) throws {
+        try data.write(to: url, options: .atomic)
+        try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: url.path)
     }
 
     private func ensureDefaultExists() throws {

@@ -12,6 +12,7 @@ public struct ImageAction: Codable, Equatable, Sendable {
     public let arguments: [String]?
     public let url: String?
     public let command: String?
+    private var encodesID = true
 
     public init(id: String, title: String, kind: Kind, executable: String? = nil,
                 arguments: [String]? = nil, url: String? = nil, command: String? = nil) {
@@ -26,10 +27,17 @@ public struct ImageAction: Codable, Equatable, Sendable {
 
     private enum CodingKeys: String, CodingKey { case id, title, label, kind, executable, arguments, url, cmd }
 
+    static func configured(label: String, cmd: String, index: Int) -> ImageAction {
+        var action = ImageAction(id: "action-\(index + 1)", title: label, kind: .runCommand, command: cmd)
+        action.encodesID = false
+        return action
+    }
+
     public init(from decoder: Decoder) throws {
         let generatedID = "action-\((decoder.codingPath.last?.intValue ?? 0) + 1)"
         if let text = try? decoder.singleValueContainer().decode(String.self) {
             self.init(id: generatedID, title: Self.defaultLabel(text), kind: .runCommand, command: text)
+            encodesID = false
             return
         }
         let values = try decoder.container(keyedBy: CodingKeys.self)
@@ -48,11 +56,12 @@ public struct ImageAction: Codable, Equatable, Sendable {
                       arguments: try values.decodeIfPresent([String].self, forKey: .arguments),
                       url: try values.decodeIfPresent(String.self, forKey: .url))
         }
+        encodesID = values.contains(.id)
     }
 
     public func encode(to encoder: Encoder) throws {
         var values = encoder.container(keyedBy: CodingKeys.self)
-        try values.encode(id, forKey: .id)
+        if encodesID { try values.encode(id, forKey: .id) }
         if let command {
             try values.encode(title, forKey: .label)
             try values.encode(command, forKey: .cmd)
@@ -72,7 +81,7 @@ public struct ImageAction: Codable, Equatable, Sendable {
     }
 
     public func expandedArguments(for file: URL) -> [String] {
-        let templates = arguments ?? command.flatMap { try? ActionCommand.parse($0).arguments } ?? []
+        let templates = arguments ?? command.flatMap { try? ActionPipeline.parse($0).stages.flatMap(\.arguments) } ?? []
         return templates.map { ActionPlaceholders.expand($0, file: file) }
     }
 

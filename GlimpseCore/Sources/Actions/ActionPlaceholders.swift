@@ -1,19 +1,18 @@
 import Foundation
 
 enum ActionPlaceholders {
-    static let names = ["filename", "filepath", "fname", "fpath", "ppath"]
+    static let names = ["filename", "filepath", "parentpath"]
 
     static func validate(_ text: String) throws {
         let remainder = names.reduce(text) { $0.replacingOccurrences(of: "{\($1)}", with: "") }
         guard !remainder.contains("{"), !remainder.contains("}") else {
-            throw ActionsConfigurationError.invalid("Use {fname}, {fpath}, {ppath}, {filename}, or {filepath} placeholders.")
+            throw ActionsConfigurationError.invalid("Use the full placeholder names: {filename}, {filepath}, or {parentpath}.")
         }
     }
 
     static func expand(_ text: String, file: URL, encodeURL: Bool = false) -> String {
-        let values = ["fname": file.lastPathComponent, "filename": file.lastPathComponent,
-                      "fpath": file.path, "filepath": file.path,
-                      "ppath": file.deletingLastPathComponent().path]
+        let values = ["filename": file.lastPathComponent, "filepath": file.path,
+                      "parentpath": file.deletingLastPathComponent().path]
         let allowed = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "-._~"))
         var output = "", cursor = text.startIndex
         // Scan only the template: braces/quotes inside filenames remain data.

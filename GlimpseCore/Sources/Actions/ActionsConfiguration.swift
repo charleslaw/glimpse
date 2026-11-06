@@ -5,10 +5,10 @@ public struct ActionsConfiguration: Codable, Equatable, Sendable {
     public let actions: [ImageAction]
     public let notes: String?
     public let variables: [String: String]?
-    public let examples: [String: String]?
+    public let examples: [ImageAction]?
 
     public init(version: Int = 1, actions: [ImageAction], notes: String? = nil,
-                variables: [String: String]? = nil, examples: [String: String]? = nil) {
+                variables: [String: String]? = nil, examples: [ImageAction]? = nil) {
         self.version = version
         self.actions = actions
         self.notes = notes
@@ -20,20 +20,35 @@ public struct ActionsConfiguration: Codable, Equatable, Sendable {
     public static let standardVariables = [
         "{filename}": "The image's filename, including extension, without its directory.",
         "{filepath}": "The full local path to the image file.",
-        "{fname}": "Alias for {filename}: the filename without its directory.",
-        "{fpath}": "Alias for {filepath}: the full local path to the image file.",
-        "{ppath}": "The full path to the image's parent directory; open {ppath} opens that folder.",
+        "{parentpath}": "The full path to the image's parent directory; open {parentpath} opens that folder.",
     ]
     public static let standardExamples = [
-        "Open directory": "open {ppath}",
-        "Open in Chrome": "chrome {fname}",
-        "Google image search": "google-lens {filepath}",
+        ImageAction.configured(label: "Open directory", cmd: "open {parentpath}", index: 0),
+        ImageAction.configured(label: "Open in Chrome", cmd: "chrome {filename}", index: 1),
+        ImageAction.configured(label: "Google image search", cmd: "google-lens {filepath}", index: 2),
     ]
 
     public static let defaults = ActionsConfiguration(actions: [
-        ImageAction(id: "copy-image-path", title: "Copy Image Path", kind: .copyImagePath),
-        ImageAction(id: "open-image-location", title: "Open Image Location", kind: .openImageLocation),
+        ImageAction.configured(label: "Copy Image Path", cmd: "echo \"{filepath}\" | pbcopy", index: 0),
+        ImageAction.configured(label: "Open Image Location", cmd: "open {parentpath}", index: 1),
     ], notes: requiredNotes, variables: standardVariables, examples: standardExamples)
+
+    private enum CodingKeys: String, CodingKey { case version, actions, notes, variables, examples }
+
+    public init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        version = try values.decode(Int.self, forKey: .version)
+        actions = try values.decode([ImageAction].self, forKey: .actions)
+        notes = try values.decodeIfPresent(String.self, forKey: .notes)
+        variables = try values.decodeIfPresent([String: String].self, forKey: .variables)
+        if let old = try? values.decode([String: String].self, forKey: .examples) {
+            examples = old.sorted { $0.key < $1.key }.enumerated().map {
+                ImageAction.configured(label: $0.element.key, cmd: $0.element.value, index: $0.offset)
+            }
+        } else {
+            examples = try values.decodeIfPresent([ImageAction].self, forKey: .examples)
+        }
+    }
 
     public static func decode(_ data: Data) throws -> ActionsConfiguration {
         guard data.count <= 65_536 else { throw ActionsConfigurationError.invalid("Config files must be 64 KB or smaller.") }
@@ -87,52 +102,24 @@ public struct ActionsConfiguration: Codable, Equatable, Sendable {
             switch action.kind {
             case .copyImagePath, .openImageLocation: break
             case .runCommand:
-                let executable: String
-                let arguments: [String]
+                let stages: [ActionCommand]
                 if let command = action.command {
                     guard action.executable == nil, action.arguments == nil, action.url == nil else {
                         throw ActionsConfigurationError.invalid("Use cmd or executable/arguments, not both in the same action.")
                     }
-                    let parsed = try ActionCommand.parse(command)
-                    guard parsed.executable.hasPrefix("/") || ActionCommand.isBareExecutable(parsed.executable) else {
-                        throw ActionsConfigurationError.invalid("Use a command name or an absolute executable path.")
-                    }
-                    executable = parsed.executable
-                    arguments = parsed.arguments
-                    if executable == "google-lens" { try parsed.validateGoogleLensArguments() }
+                    stages = try ActionPipeline.parse(command).stages
                 } else {
                     guard let path = action.executable, path.hasPrefix("/") else {
                         throw ActionsConfigurationError.invalid("Commands need a fixed, absolute executable path.")
                     }
-                    executable = path
-                    arguments = action.arguments ?? []
+                    stages = [ActionCommand(executable: path, arguments: action.arguments ?? [])]
                 }
-                guard !executable.isEmpty,
-                      !executable.contains("{"), !executable.utf8.contains(0),
-                      executable.utf8.count <= 4096, arguments.count <= 32 else {
-                    throw ActionsConfigurationError.invalid("Use a fixed command and at most 32 arguments.")
-                }
-                for argument in arguments {
-                    guard argument.utf8.count <= 8192, !argument.utf8.contains(0) else {
-                        throw ActionsConfigurationError.invalid("Command arguments are too long or contain a null byte.")
+                for stage in stages {
+                    if stage.executable == "google-lens" {
+                        guard stages.count == 1 else { throw ActionsConfigurationError.invalid("Use google-lens as a standalone action, not in a pipeline.") }
+                        try stage.validateGoogleLensArguments()
                     }
-                    try ActionPlaceholders.validate(argument)
-                }
-                let name = URL(fileURLWithPath: executable).lastPathComponent.lowercased()
-                let shells: Set<String> = ["sh", "bash", "zsh", "fish", "csh", "tcsh", "ksh", "dash"]
-                let interpreters: Set<String> = ["python", "node", "nodejs", "ruby", "perl", "osascript", "swift", "env", "pwsh"]
-                let inlineCode = arguments.contains { argument in
-                    if shells.contains(name), argument.hasPrefix("-"), !argument.hasPrefix("--"), argument.dropFirst().contains("c") { return true }
-                    if shells.contains(name), argument.hasPrefix("--command") { return true }
-                    if interpreters.contains(name) || name.hasPrefix("python") {
-                        return ["-c", "-e", "--eval", "--execute", "-command", "-encodedcommand"].contains(argument.lowercased()) ||
-                            argument.hasPrefix("--eval=") || argument.hasPrefix("--execute=") ||
-                            (name == "env" && (argument == "-S" || argument.hasPrefix("--split-string")))
-                    }
-                    return false
-                }
-                guard !inlineCode else {
-                    throw ActionsConfigurationError.invalid("Inline shell/interpreter code is not supported. Run a trusted script file and pass {filepath} as a separate argument.")
+                    try validateCommand(stage)
                 }
             case .openURL:
                 guard let template = action.url, template.utf8.count <= 8192,
@@ -143,6 +130,40 @@ public struct ActionsConfiguration: Codable, Equatable, Sendable {
                 }
                 try ActionPlaceholders.validate(template)
             }
+        }
+    }
+
+    private func validateCommand(_ stage: ActionCommand) throws {
+        let executable = stage.executable, arguments = stage.arguments
+        guard executable.hasPrefix("/") || ActionCommand.isBareExecutable(executable) else {
+            throw ActionsConfigurationError.invalid("Use a command name or an absolute executable path.")
+        }
+        guard !executable.isEmpty,
+              !executable.contains("{"), !executable.utf8.contains(0),
+              executable.utf8.count <= 4096, arguments.count <= 32 else {
+            throw ActionsConfigurationError.invalid("Use a fixed command and at most 32 arguments.")
+        }
+        for argument in arguments {
+            guard argument.utf8.count <= 8192, !argument.utf8.contains(0) else {
+                throw ActionsConfigurationError.invalid("Command arguments are too long or contain a null byte.")
+            }
+            try ActionPlaceholders.validate(argument)
+        }
+        let name = URL(fileURLWithPath: executable).lastPathComponent.lowercased()
+        let shells: Set<String> = ["sh", "bash", "zsh", "fish", "csh", "tcsh", "ksh", "dash"]
+        let interpreters: Set<String> = ["python", "node", "nodejs", "ruby", "perl", "osascript", "swift", "env", "pwsh"]
+        let inlineCode = arguments.contains { argument in
+            if shells.contains(name), argument.hasPrefix("-"), !argument.hasPrefix("--"), argument.dropFirst().contains("c") { return true }
+            if shells.contains(name), argument.hasPrefix("--command") { return true }
+            if interpreters.contains(name) || name.hasPrefix("python") {
+                return ["-c", "-e", "--eval", "--execute", "-command", "-encodedcommand"].contains(argument.lowercased()) ||
+                    argument.hasPrefix("--eval=") || argument.hasPrefix("--execute=") ||
+                    (name == "env" && (argument == "-S" || argument.hasPrefix("--split-string")))
+            }
+            return false
+        }
+        guard !inlineCode else {
+            throw ActionsConfigurationError.invalid("Inline shell/interpreter code is not supported. Run a trusted script file and pass {filepath} as a separate argument.")
         }
     }
 

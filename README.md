@@ -63,7 +63,7 @@ The title bar also has Zoom Out, Zoom In, Actual Size and Best Fit buttons. Choo
 
 Manual zoom shortcuts work in every mode; `⌘0` returns the current image to 100%.
 
-**Actions → Edit Command Config…** opens a JSON file where you can add entries such as `"chrome {fname}"` or `{"label":"Open dir","cmd":"open {ppath}"}`. `{fname}` is the filename, `{fpath}` the full path, and `{ppath}` the parent folder. The file includes maintained variable descriptions and copyable command examples, including `google-lens {filepath}` to prepare a visual search with a manual browser upload. Configuration lives in Application Support and persists across app installs. See [Actions configuration](docs/ACTIONS.md) for the full format, quoting and execution behavior.
+**Actions → Edit Command Config…** opens a JSON file where you can add entries such as `{"label":"Open dir","cmd":"open {parentpath}"}`. `{filename}` is the filename, `{filepath}` the full path, and `{parentpath}` the parent folder. The file includes maintained variable descriptions and copyable command examples, including `google-lens {filepath}` to prepare a visual search with a manual browser upload. Configuration lives in Application Support and persists across app installs. See [Actions configuration](docs/ACTIONS.md) for the full format, quoting and execution behavior.
 
 Choose **Settings → Background** for **Dark Gray Pattern** (the default), **Black**, **White**, **Very Dark Gray**, or **Custom…**. Custom accepts red, green and blue values from 0–255 and includes the macOS color picker. Click Apply to update all image windows. Your selection and custom RGB color are remembered between launches. Backgrounds show around images and through transparent pixels; image files are not modified.
 
