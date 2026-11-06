@@ -32,7 +32,28 @@ public actor ActionsConfigurationStore {
 
     public func editableURL() throws -> URL {
         try ensureDefaultExists()
-        return fileURL
+        let url = fileURL
+        // Invalid nonblank files still open for repair. Never replace their
+        // contents with defaults just to insert documentation.
+        guard let data = try? readData(url) else { return url }
+        if isBlank(data) { try writeDefaults(to: url); return url }
+        guard var object = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] else { return url }
+        if object["notes"] as? String != ActionsConfiguration.requiredNotes ||
+            object["variables"] as? [String: String] != ActionsConfiguration.standardVariables ||
+            object["examples"] as? [String: String] != ActionsConfiguration.standardExamples {
+            object["notes"] = ActionsConfiguration.requiredNotes
+            object["variables"] = ActionsConfiguration.standardVariables
+            object["examples"] = ActionsConfiguration.standardExamples
+            let updated = try JSONSerialization.data(withJSONObject: object, options: [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes])
+            guard updated.count <= 65_536 else {
+                throw ActionsConfigurationError.invalid("Adding the required notes would exceed the 64 KB config limit. Reduce the file size first.")
+            }
+            // Preserve original action syntax and unknown user fields rather
+            // than round-tripping through the normalized execution model.
+            try updated.write(to: url, options: .atomic)
+            try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: url.path)
+        }
+        return url
     }
 
     public func choose(_ url: URL) throws {

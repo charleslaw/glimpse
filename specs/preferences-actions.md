@@ -31,7 +31,9 @@ The default pattern alternates opaque sRGB **32,32,32** and **40,40,40** in 12-p
 
 The default file is `~/Library/Application Support/Glimpse/actions.json`. The Actions menu shows configured actions and one permanent management item: **Edit Command Config…**. It opens the actual file in TextEdit. Returning to Glimpse reloads it. Saving a blank/whitespace-only file regenerates defaults; valid JSON with an empty `actions` array deliberately means no actions and is preserved.
 
-The version-1 JSON contains `version`, optional human-readable `notes`, and an `actions` array. Default actions are **Copy Image Path** and **Open Image Location**. New defaults include a note explaining blank-file reset. Older configs without notes remain valid. Invalid nonblank JSON is not overwritten: the menu displays a config error while editing stays available.
+The version-1 JSON contains `version`, an `actions` array, and documentation fields `notes`, `variables` and `examples`. Default actions are **Copy Image Path** and **Open Image Location**. Opening the config in the editor restores the standard documentation in valid JSON, preserving action syntax and unknown user fields. The variable dictionary describes built-in tokens; the examples dictionary is not executable. Older configs without these fields remain valid. Invalid nonblank JSON is not overwritten: the menu displays a config error while editing stays available. Config files live outside the app bundle and survive app replacement/reinstallation.
+
+The actions array accepts the original structured objects, strings such as `"chrome {fname}"`, and compact objects such as `{"label":"Open dir","cmd":"open {ppath}"}`. `ImageAction` normalizes these into one execution model and generates stable positional IDs when omitted. `ActionCommand` parses quoting/escapes before any filename expansion; it never evaluates a shell.
 
 | Action kind | App-side behavior |
 | --- | --- |
@@ -40,8 +42,10 @@ The version-1 JSON contains `version`, optional human-readable `notes`, and an `
 | `openURL` | Open a fixed-host HTTPS template; confirm when file information is included |
 | `runCommand` | Confirm and run a fixed absolute executable with separate arguments |
 
-`ImageAction` expands `{filename}` and `{filepath}` once. Command arguments remain literal argument-array values; URL values are percent encoded. Validation checks size/count limits, IDs/titles, placeholders, fixed HTTPS hosts and executable paths. The core store uses bounded regular-file reads and serializes config I/O.
+`ActionPlaceholders` expands `{fname}`/`{filename}`, `{fpath}`/`{filepath}`, and parent directory `{ppath}` once. Command arguments remain literal argument-array values; URL values are percent encoded. Validation checks size/count limits, IDs/titles, placeholders, fixed HTTPS hosts and executable paths. The core store uses bounded regular-file reads and serializes config I/O.
 
-`ActionRunner` is the only executor. It revalidates the action and resolved executable, rejects quarantined executables and common inline shell/interpreter code, and asks before each command. Configured scripts are still trusted code with the user's privileges. There is no command sandbox. Four direct children may run concurrently; after 30 seconds the app requests termination, which does not guarantee descendant processes exit.
+`ActionRunner` is the only executor. `ActionCommand` resolves bare executables in fixed system/Homebrew directories, never in the image directory; `chrome` maps to macOS `open` with Google Chrome's bundle ID. The runner revalidates the resolved executable, rejects quarantined executables and common inline shell/interpreter code, and asks before each command. Its working directory is the image's parent, allowing basename placeholders. Configured scripts are still trusted code with the user's privileges. There is no command sandbox. Four direct children may run concurrently; after 30 seconds the app requests termination, which does not guarantee descendant processes exit.
+
+`google-lens {filepath}` is a reserved helper handled by the app before executable resolution. It opens Lens and reveals the selected image for the user to upload/drag into the browser. It accepts selected-image tokens only. It does not upload file bytes, automate a browser upload, or treat a local path as a publicly reachable URL.
 
 For complete user-editable examples, see [the Actions instructions](../docs/ACTIONS.md). Add a new action kind by updating its core model/validation first, then its app executor and tests; do not embed command execution in the viewer or config parser.
