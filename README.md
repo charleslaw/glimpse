@@ -55,7 +55,7 @@ Build from source below. Public distribution tooling is prepared, but a Develope
 
 The window title shows the current filename and position in the folder, e.g. `photo.jpg (7 of 42)`.
 
-The title bar also has Zoom Out, Zoom In, Actual Size and Best Fit buttons. Choose a default zoom mode in **Settings**. Your last selection is remembered between launches:
+The title bar also has Zoom Out, Zoom In, Actual Size and Scale to Fit buttons. Scale to Fit enlarges small images or shrinks large ones to fit the current window, preserving their proportions (up to 20× zoom). Choose a default zoom mode in **Settings**. Your last selection is remembered between launches:
 
 - **Best Fit** fits images without enlarging them beyond 100%, and refits when you resize the window.
 - **Actual Size** opens images at 100%; scroll to see any parts outside the window.

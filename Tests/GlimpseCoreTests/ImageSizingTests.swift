@@ -46,4 +46,22 @@ final class ImageSizingTests: XCTestCase {
         let scale = try XCTUnwrap(ImageSizing.fitMagnification(image: CGSize(width: 40_000, height: 10_000), viewport: screen))
         XCTAssertEqual(scale, 0.025, accuracy: 0.000001)
     }
+
+    func testWindowFitEnlargesSmallGIFCanvasWithoutClippingEitherAxis() throws {
+        let image = CGSize(width: 330, height: 318)
+        for viewport in [CGSize(width: 936, height: 904), CGSize(width: 600, height: 900)] {
+            let scale = try XCTUnwrap(ImageSizing.fitMagnification(image: image, viewport: viewport, maximum: 20))
+            XCTAssertGreaterThan(scale, 1)
+            XCTAssertLessThanOrEqual(image.width * scale, viewport.width + 0.0001)
+            XCTAssertLessThanOrEqual(image.height * scale, viewport.height + 0.0001)
+            XCTAssertEqual(max(image.width * scale / viewport.width, image.height * scale / viewport.height), 1, accuracy: 0.0001)
+        }
+    }
+
+    func testWindowFitStillShrinksLargeImagesAndHonorsZoomLimit() throws {
+        XCTAssertEqual(try XCTUnwrap(ImageSizing.fitMagnification(image: CGSize(width: 1200, height: 1384),
+                                                                 viewport: CGSize(width: 800, height: 600), maximum: 20)),
+                       600.0 / 1384.0, accuracy: 0.0001)
+        XCTAssertEqual(ImageSizing.fitMagnification(image: CGSize(width: 1, height: 1), viewport: screen, maximum: 20), 20)
+    }
 }

@@ -150,9 +150,18 @@ final class ImageViewController: NSViewController {
     }
 
     @objc func zoomBestFit() {
+        fitToWindow(maximum: 1)
+    }
+
+    @objc func zoomScaleToFit() {
+        fitToWindow(maximum: scrollView.maxMagnification)
+    }
+
+    private func fitToWindow(maximum: CGFloat) {
         view.layoutSubtreeIfNeeded()
         guard let scale = ImageSizing.fitMagnification(image: currentImageSize,
-                                                       viewport: scrollView.contentSize) else { return }
+                                                       viewport: scrollView.contentSize,
+                                                       maximum: maximum) else { return }
         scrollView.minMagnification = min(0.05, scale)
         setMagnification(scale)
     }

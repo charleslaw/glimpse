@@ -19,6 +19,8 @@ Settings selection / Custom Apply
 
 **Best Fit** shrinks to fit and does not enlarge beyond 100%. It refits on window resize. **Actual Size** uses 100% with scrolling. **Scale to Fit** uses up to 90% of the visible screen, enlarges small images and caps magnification at 20×. Its stored raw value stays `autoSize` for compatibility. Manual zoom does not change the selected persistent mode.
 
+The toolbar's **Scale to Fit** button fits the current image to the existing viewport, allowing enlargement up to 20×. It does not resize the window or change the saved mode. Both this action and the shrink-only Best Fit resize behavior use `ImageSizing.fitMagnification`, with different maximum scales. GIFs use the same canvas geometry as still images.
+
 ## Backgrounds
 
 The default pattern alternates opaque sRGB **32,32,32** and **40,40,40** in 12-point squares. Black is 0,0,0; White is 255,255,255; Very Dark Gray is 24,24,24. Custom RGB is stored independently, so switching presets does not discard the user's custom color.

@@ -5,7 +5,7 @@ private extension NSToolbarItem.Identifier {
     static let zoomIn     = NSToolbarItem.Identifier("zoomIn")
     static let zoomOut    = NSToolbarItem.Identifier("zoomOut")
     static let actualSize = NSToolbarItem.Identifier("actualSize")
-    static let bestFit    = NSToolbarItem.Identifier("bestFit")
+    static let scaleToFit = NSToolbarItem.Identifier("scaleToFit")
 }
 
 @MainActor
@@ -75,11 +75,11 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate {
 extension ViewerWindowController: NSToolbarDelegate {
 
     func toolbarDefaultItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
-        [.flexibleSpace, .zoomOut, .zoomIn, .actualSize, .bestFit]
+        [.flexibleSpace, .zoomOut, .zoomIn, .actualSize, .scaleToFit]
     }
 
     func toolbarAllowedItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
-        [.zoomOut, .zoomIn, .actualSize, .bestFit, .flexibleSpace, .space]
+        [.zoomOut, .zoomIn, .actualSize, .scaleToFit, .flexibleSpace, .space]
     }
 
     func toolbar(_ toolbar: NSToolbar,
@@ -89,7 +89,7 @@ extension ViewerWindowController: NSToolbarDelegate {
         case .zoomOut:    return makeItem(.zoomOut,    symbol: "minus.magnifyingglass", label: "Zoom Out",    action: #selector(ImageViewController.zoomOut))
         case .zoomIn:     return makeItem(.zoomIn,     symbol: "plus.magnifyingglass",  label: "Zoom In",     action: #selector(ImageViewController.zoomIn))
         case .actualSize: return makeItem(.actualSize, symbol: "1.magnifyingglass",     label: "Actual Size", action: #selector(ImageViewController.zoomActualSize))
-        case .bestFit:    return makeItem(.bestFit,    symbol: "arrow.up.left.and.arrow.down.right", label: "Best Fit", action: #selector(ImageViewController.zoomBestFit))
+        case .scaleToFit: return makeItem(.scaleToFit, symbol: "arrow.up.left.and.arrow.down.right", label: "Scale to Fit", action: #selector(ImageViewController.zoomScaleToFit))
         default: return nil
         }
     }
