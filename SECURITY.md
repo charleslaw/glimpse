@@ -2,7 +2,7 @@
 
 Glimpse views local files using Apple's ImageIO/AppKit. It has no third-party runtime dependencies and performs no automatic network requests. Selected custom actions can launch trusted programs or HTTPS URLs and therefore can access the network. Do not put secrets in actions files.
 
-The app uses hardened runtime, but **App Sandbox is not enabled**. Navigation reads image siblings in the selected directory; configured commands run with the user's privileges after confirmation. A future sandboxed edition would need security-scoped folder access and a different command design. Image byte/pixel/frame limits and metadata budgets reduce resource abuse, but do not isolate native decoder vulnerabilities or impose a process-wide memory ceiling. Keep macOS updated.
+The app uses hardened runtime, but **App Sandbox is not enabled**. Navigation reads image siblings in the selected directory; configured commands run with the user's privileges. Confirmation is enabled by default; users can disable prompts through Actions → Confirm Actions (`skip_confirmation: true` in the JSON). Command validation and quarantine checks still apply. A future sandboxed edition would need security-scoped folder access and a different command design. Image byte/pixel/frame limits and metadata budgets reduce resource abuse, but do not isolate native decoder vulnerabilities or impose a process-wide memory ceiling. Keep macOS updated.
 
 ## Development checks
 

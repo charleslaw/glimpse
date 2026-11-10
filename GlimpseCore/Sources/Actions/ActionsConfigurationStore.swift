@@ -50,6 +50,19 @@ public actor ActionsConfigurationStore {
         defaults.set(url.path, forKey: pathKey)
     }
 
+    /// Change only the preference in the latest valid on-disk config, preserving
+    /// custom actions and unknown fields. Invalid files must remain repairable.
+    public func setSkipConfirmation(_ value: Bool) throws -> ActionsConfiguration {
+        _ = try load()
+        let url = fileURL
+        var object = try JSONSerialization.jsonObject(with: readData(url)) as? [String: Any] ?? [:]
+        object["skip_confirmation"] = value
+        let updated = try JSONSerialization.data(withJSONObject: object, options: [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes])
+        let configuration = try ActionsConfiguration.decode(updated)
+        try write(updated, to: url)
+        return configuration
+    }
+
     @discardableResult public func reset() throws -> URL? {
         let url = fileURL
         let prepared = url.deletingLastPathComponent().appendingPathComponent("actions-reset-\(UUID().uuidString).json")
@@ -107,6 +120,7 @@ public actor ActionsConfigurationStore {
         }
         let changed = !NSArray(array: actions).isEqual(to: migrated)
         object["actions"] = migrated
+        if object["skip_confirmation"] == nil { object["skip_confirmation"] = false }
         if changed || refreshHelp {
             object["notes"] = ActionsConfiguration.requiredNotes
             object["variables"] = ActionsConfiguration.standardVariables

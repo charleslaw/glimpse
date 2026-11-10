@@ -6,14 +6,17 @@ public struct ActionsConfiguration: Codable, Equatable, Sendable {
     public let notes: String?
     public let variables: [String: String]?
     public let examples: [ImageAction]?
+    public let skipConfirmation: Bool
 
     public init(version: Int = 1, actions: [ImageAction], notes: String? = nil,
-                variables: [String: String]? = nil, examples: [ImageAction]? = nil) {
+                variables: [String: String]? = nil, examples: [ImageAction]? = nil,
+                skipConfirmation: Bool = false) {
         self.version = version
         self.actions = actions
         self.notes = notes
         self.variables = variables
         self.examples = examples
+        self.skipConfirmation = skipConfirmation
     }
 
     public static let requiredNotes = "To reset the actions, save a blank file and Glimpse will regenerate the defaults."
@@ -33,12 +36,16 @@ public struct ActionsConfiguration: Codable, Equatable, Sendable {
         ImageAction.configured(label: "Open Image Location", cmd: "open {parentpath}", index: 1),
     ], notes: requiredNotes, variables: standardVariables, examples: standardExamples)
 
-    private enum CodingKeys: String, CodingKey { case version, actions, notes, variables, examples }
+    private enum CodingKeys: String, CodingKey {
+        case version, actions, notes, variables, examples
+        case skipConfirmation = "skip_confirmation"
+    }
 
     public init(from decoder: Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
         version = try values.decode(Int.self, forKey: .version)
         actions = try values.decode([ImageAction].self, forKey: .actions)
+        skipConfirmation = values.contains(.skipConfirmation) ? try values.decode(Bool.self, forKey: .skipConfirmation) : false
         notes = try values.decodeIfPresent(String.self, forKey: .notes)
         variables = try values.decodeIfPresent([String: String].self, forKey: .variables)
         if let old = try? values.decode([String: String].self, forKey: .examples) {

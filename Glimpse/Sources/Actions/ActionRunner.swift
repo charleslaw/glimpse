@@ -6,7 +6,7 @@ import GlimpseCore
 final class ActionRunner {
     private var pipelines: [UUID: ProcessPipeline] = [:]
 
-    func run(_ action: ImageAction, file: URL) {
+    func run(_ action: ImageAction, file: URL, skipConfirmation: Bool = false) {
         do {
             // Validate even if an action was constructed without reading JSON.
             _ = try ActionsConfiguration(actions: [action]).encoded()
@@ -20,14 +20,14 @@ final class ActionRunner {
                 guard let url = action.expandedURL(for: file), url.absoluteString.count <= 32_768 else {
                     throw Failure.message("The action produced an invalid or oversized URL.")
                 }
-                if action.url?.contains("{") == true {
+                if !skipConfirmation, action.url?.contains("{") == true {
                     guard confirm(title: action.title,
                                   details: "This opens \(url.host ?? "the website") with information about your selected file.\n\n\(url.absoluteString)",
                                   button: "Open Website") else { return }
                 }
                 guard NSWorkspace.shared.open(url) else { throw Failure.message("The website could not be opened.") }
             case .runCommand:
-                try runCommand(action, file: file)
+                try runCommand(action, file: file, skipConfirmation: skipConfirmation)
             }
         } catch { show(error) }
     }
@@ -37,7 +37,7 @@ final class ActionRunner {
         pipelines.removeAll()
     }
 
-    private func runCommand(_ action: ImageAction, file: URL) throws {
+    private func runCommand(_ action: ImageAction, file: URL, skipConfirmation: Bool) throws {
         guard pipelines.count < 4 else {
             throw Failure.message("Wait for a running action to finish before starting another.")
         }
@@ -47,7 +47,7 @@ final class ActionRunner {
         else { throw Failure.message("The action has no command.") }
         if let template = templates.first, template.executable == "google-lens" {
             try template.validateGoogleLensArguments()
-            guard confirm(title: action.title,
+            guard skipConfirmation || confirm(title: action.title,
                           details: "Google Lens will open and this image will be selected in Finder. Drag it into Lens, or choose Upload a file.\n\n\(file.path)\n\nThe image is uploaded only when you submit it in the browser.",
                           button: "Open Google Lens") else { return }
             guard let url = URL(string: "https://lens.google.com/"), NSWorkspace.shared.open(url) else {
@@ -78,7 +78,7 @@ final class ActionRunner {
         let details = commands.map { command in
             command.executable + " " + command.arguments.map { String(reflecting: $0) }.joined(separator: " ")
         }.joined(separator: "\n  | ")
-        guard confirm(title: action.title,
+        guard skipConfirmation || confirm(title: action.title,
                       details: "This runs commands from your actions file.\n\nFolder: \(file.deletingLastPathComponent().path)\n\n\(details)",
                       button: "Run Command") else { return }
         let id = UUID()

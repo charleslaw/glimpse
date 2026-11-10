@@ -7,6 +7,7 @@ To reset, select all text, delete it and **save a blank file**. When you return 
 ```json
 {
   "version": 1,
+  "skip_confirmation": false,
   "notes": "To reset the actions, save a blank file and Glimpse will regenerate the defaults.",
   "variables": {
     "{filename}": "The image's filename, including extension, without its directory.",
@@ -36,6 +37,7 @@ Add command strings or `label`/`cmd` objects to the `actions` array alongside th
 ```json
 {
   "version": 1,
+  "skip_confirmation": false,
   "actions": [
     { "label": "Copy Image Path", "cmd": "echo \"{filepath}\" | pbcopy" },
     { "label": "Open Image Location", "cmd": "open {parentpath}" },
@@ -71,6 +73,6 @@ The older structured action formats remain readable for compatibility. New comma
 
 The default clipboard action runs `echo "{filepath}" | pbcopy`, including the trailing newline produced by `echo`. Open Image Location runs `open {parentpath}`, opening the containing folder. To print, add `{ "label": "Send to Default Printer", "cmd": "lp -- {filepath}" }`; this uses the system's default printer and supported file formats.
 
-Command actions ask before each execution, showing the executable and expanded arguments. Links containing file information ask before opening. No actions run on image open. Commands use `Process` with an argument array, without shell parsing. Quarantined executables and common inline shell/interpreter code are rejected. For more complex commands, configure a trusted script file and pass the image path as a separate argument; never construct executable code from filenames. Commands are limited to four concurrent actions, each with at most four direct child processes; after 30 seconds Glimpse requests termination. This is not a hard execution sandbox or a guarantee that descendants exit.
+**Actions → Confirm Actions** controls whether commands and links containing file information ask before running. It is checked by default (`"skip_confirmation": false`); unchecking it writes `true` and runs selected actions immediately. A missing flag is treated as `false` and added to the JSON. Only JSON booleans are accepted. This preference applies to all configured actions, including the Google Lens helper, and survives reinstalls. Confirmation dialogs show the executable and expanded arguments when enabled. No actions run on image open. Commands use `Process` with an argument array, without shell parsing. Quarantined executables and common inline shell/interpreter code are rejected. For more complex commands, configure a trusted script file and pass the image path as a separate argument; never construct executable code from filenames. Commands are limited to four concurrent actions, each with at most four direct child processes; after 30 seconds Glimpse requests termination. This is not a hard execution sandbox or a guarantee that descendants exit.
 
 Treat config files and scripts as trusted executable configuration: a command can access everything your user account can, use the network, or change files. The checks do not make arbitrary downloaded commands safe. Glimpse does not remove quarantine or grant elevated privileges. Configuration is capped at 64 KB and 64 actions with unique IDs and short labels. Only the placeholders above are accepted.

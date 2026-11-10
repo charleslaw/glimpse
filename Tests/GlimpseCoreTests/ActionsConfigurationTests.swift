@@ -29,7 +29,9 @@ final class ActionsConfigurationTests: XCTestCase {
         let config = try await store.load()
         XCTAssertTrue(config.actions.isEmpty)
         XCTAssertNil(config.notes)
-        XCTAssertEqual(try Data(contentsOf: url), original)
+        let saved = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(contentsOf: url)) as? [String: Any])
+        XCTAssertEqual(saved["skip_confirmation"] as? Bool, false)
+        XCTAssertEqual((saved["actions"] as? [Any])?.count, 0)
     }
 
     func testCustomNotesRoundTripAndOlderFilesRemainValid() throws {

@@ -11,6 +11,7 @@ final class ActionsMenuController: NSObject, NSMenuDelegate {
     private var configError: String?
     private var reportedError: String?
     private var reloadTask: Task<Void, Never>?
+    private var isSavingConfirmation = false
 
     init(currentFile: @escaping () -> URL?) {
         self.currentFile = currentFile
@@ -25,6 +26,7 @@ final class ActionsMenuController: NSObject, NSMenuDelegate {
 
     func reload() {
         reloadTask?.cancel()
+        isSavingConfirmation = false
         let store = store
         reloadTask = Task { @MainActor [weak self] in
             do {
@@ -65,6 +67,10 @@ final class ActionsMenuController: NSObject, NSMenuDelegate {
             item.isEnabled = currentFile() != nil
         }
         menu.addItem(.separator())
+        let confirmation = menu.addItem(withTitle: "Confirm Actions", action: #selector(toggleConfirmation), keyEquivalent: "")
+        confirmation.target = self
+        confirmation.state = configuration.skipConfirmation ? .off : .on
+        confirmation.isEnabled = configError == nil && !isSavingConfirmation
         // Editing stays available even for empty or invalid JSON.
         addManagement("Edit Command Config…", action: #selector(editConfig))
     }
@@ -77,7 +83,31 @@ final class ActionsMenuController: NSObject, NSMenuDelegate {
 
     @objc private func runAction(_ sender: NSMenuItem) {
         guard let action = sender.representedObject as? ImageAction, let file = currentFile() else { return }
-        runner.run(action, file: file)
+        runner.run(action, file: file, skipConfirmation: configuration.skipConfirmation)
+    }
+
+    @objc private func toggleConfirmation() {
+        guard configError == nil, !isSavingConfirmation else { return }
+        let skip = !configuration.skipConfirmation
+        reloadTask?.cancel()
+        isSavingConfirmation = true
+        rebuild()
+        let store = store
+        reloadTask = Task { @MainActor [weak self] in
+            do {
+                let configuration = try await store.setSkipConfirmation(skip)
+                guard let self, !Task.isCancelled else { return }
+                self.configuration = configuration
+                self.isSavingConfirmation = false
+                self.rebuild()
+            } catch {
+                guard let self, !Task.isCancelled else { return }
+                self.isSavingConfirmation = false
+                self.rebuild()
+                self.show(error)
+                self.reload()
+            }
+        }
     }
 
     @objc private func editConfig() {
