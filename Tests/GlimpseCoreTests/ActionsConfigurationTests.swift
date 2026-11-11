@@ -157,16 +157,21 @@ final class ActionsConfigurationTests: XCTestCase {
         XCTAssertEqual(reset, .defaults)
     }
 
-    func testInvalidConfigIsNeverOverwrittenByLoading() async throws {
+    func testInvalidConfigIsBackedUpBeforeDefaultsAreRestored() async throws {
         let folder = try TemporaryFolder()
         let data = Data("invalid json".utf8)
         let url = try folder.file("actions.json", data: data)
         let store = ActionsConfigurationStore(defaultURL: url, preferencesSuite: "GlimpseTests.\(UUID())")
-        do { _ = try await store.load(); XCTFail("Invalid config accepted") }
-        catch { XCTAssertTrue(error.localizedDescription.contains("JSON"), error.localizedDescription) }
-        XCTAssertEqual(try Data(contentsOf: url), data)
+        let restored = try await store.load()
+        XCTAssertEqual(restored.actions, ActionsConfiguration.defaults.actions)
+        let backup = try XCTUnwrap(FileManager.default.contentsOfDirectory(at: folder.url, includingPropertiesForKeys: nil)
+            .first { $0.lastPathComponent.contains("-backup-") })
+        XCTAssertEqual(try Data(contentsOf: backup), data)
+        XCTAssertTrue(try XCTUnwrap(restored.warning).contains(backup.lastPathComponent))
         let editable = try await store.editableURL()
         XCTAssertEqual(editable, url)
+        let reopened = try await store.load()
+        XCTAssertEqual(reopened.warning, restored.warning)
     }
 
     func testChosenConfigPathPersistsAndInvalidChoiceDoesNotReplaceIt() async throws {

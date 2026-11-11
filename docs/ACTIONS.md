@@ -1,8 +1,8 @@
 # Actions configuration
 
-**Actions → Edit Command Config…** is the only management item and always stays in the menu, including when the JSON is invalid or has no actions. By default it edits `~/Library/Application Support/Glimpse/actions.json` in TextEdit. Save as plain UTF-8 JSON. Returning to Glimpse reloads it. Bad configuration shows an error with a repair hint, then uses the two default actions: Copy Image Path and Open Image Location. The bad file is kept for editing. The same error is reported once until it changes or a valid config loads.
+**Actions → Edit Command Config…** is the only management item and always stays in the menu, including when the JSON is invalid or has no actions. By default it edits `~/Library/Application Support/Glimpse/actions.json` in TextEdit. Save as plain UTF-8 JSON. Returning to Glimpse reloads it. If the active config is invalid, Glimpse first saves the original bytes in a uniquely named backup beside it, then writes a fresh config with the two default actions: Copy Image Path and Open Image Location. The new JSON contains a `WARNING` naming the exact backup path and explaining how to restore your actions. The menu also shows “Previous config backed up” while that warning remains. If backup or replacement preparation fails, the original stays untouched and an error explains the problem.
 
-To reset, select all text, delete it and **save a blank file**. When you return to Glimpse, it regenerates these defaults. Whitespace-only files also reset. Valid JSON with `"actions": []` keeps an empty menu rather than resetting. Save a copy of your customized config first if you want to keep it.
+To reset, select all text, delete it and **save a blank file**. When you return to Glimpse, it regenerates these defaults. Whitespace-only files also reset. Valid JSON with `"actions": []` keeps an empty menu rather than resetting. Glimpse backs up the current file before opening the editor, so an accidental blank save does not erase the previous copy.
 
 ```json
 {
@@ -26,9 +26,21 @@ To reset, select all text, delete it and **save a blank file**. When you return 
 }
 ```
 
-The `notes`, `variables`, and `examples` fields are maintained documentation. Every time **Edit Command Config…** opens a valid config, Glimpse inserts or restores their standard values. `variables` describes the built-in substitutions; it does not define new variables. `examples` lists copyable commands and does not execute them. Custom actions and other user fields are preserved. Existing built-in actions migrate to command objects, and old abbreviated placeholders migrate to their full names. Invalid nonblank JSON still opens for repair without being replaced. Older configs without these fields remain valid. If you previously selected another config file in an older Glimpse build, Edit Command Config still opens that remembered path and clearing it resets that file.
+The `notes`, `variables`, and `examples` fields are maintained documentation. Every time **Edit Command Config…** opens a valid config, Glimpse inserts or restores their standard values. `variables` describes the built-in substitutions; it does not define new variables. `examples` lists copyable commands and does not execute them. Custom actions and other user fields are preserved. Existing built-in actions migrate to command objects, and old abbreviated placeholders migrate to their full names. Invalid nonblank files are backed up before a replacement config opens in the editor. Older configs without these fields remain valid. If you previously selected another config file in an older Glimpse build, Edit Command Config still opens that remembered path and clearing it resets that file.
 
 The config is stored outside `Glimpse.app`, so replacing, updating or reinstalling the app preserves it. Deleting the Application Support file yourself or intentionally saving it blank resets it.
+
+## Backups and recovery
+
+Glimpse backs up the existing file before every app-initiated rewrite (including migrations, documentation updates, confirmation changes and resets), and before opening an unchanged config in the editor. Unchanged background loads do not create extra backups. Backups have unique names such as `actions-backup-2026-11-10T12-00-00Z-<unique-id>.json` in the same directory. Glimpse keeps earlier backups and does not automatically delete them. Configs and backups are restricted to your user account.
+
+After an invalid save, the fresh JSON includes a field like this:
+
+```json
+"WARNING": "The previous JSON was invalid and was saved in /full/path/actions-backup-<timestamp>-<unique-id>.json. To restore it, fix the formatting or configuration issue in the backup, then copy and paste its contents into this new file."
+```
+
+Open the named backup, repair the JSON or unsupported setting, then paste the corrected contents into the active config and save. The warning remains through documentation and confirmation updates until you remove it or replace the file contents. Oversized regular files and invalid UTF-8 are also backed up intact before recovery. Unreadable files, directories and symbolic links are not automatically replaced. Newly recovered configs require confirmation before actions run (`skip_confirmation: false`).
 
 ## Simple commands
 

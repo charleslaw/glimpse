@@ -20,28 +20,30 @@ public actor ActionsConfigurationStore {
     public func load() throws -> ActionsConfiguration {
         try ensureDefaultExists()
         let url = fileURL
-        let data = try readData(url)
-        // A deliberately cleared file is the reset gesture. Invalid nonblank
-        // JSON and an explicit empty actions array must not be replaced.
+        let data: Data
+        do { data = try readData(url) }
+        catch BoundedLocalFileReader.Failure.tooLarge { return try recoverInvalidConfig(at: url) }
         if isBlank(data) {
             try writeDefaults(to: url)
             return .defaults
         }
-        let updated = try normalized(data, refreshHelp: false)
+        let updated: Data
+        do { updated = try normalized(data, refreshHelp: false) }
+        catch is CancellationError { throw CancellationError() }
+        catch { return try recoverInvalidConfig(at: url) }
         if updated != data { try write(updated, to: url) }
         return try ActionsConfiguration.decode(updated)
     }
 
     public func editableURL() throws -> URL {
-        try ensureDefaultExists()
+        // Loading either validates the file or preserves it in a backup before
+        // restoring defaults. Never hand the editor the only copy of a config.
+        _ = try load()
         let url = fileURL
-        // Invalid nonblank files still open for repair. Never replace their
-        // contents with defaults just to insert documentation.
-        guard let data = try? readData(url) else { return url }
-        if isBlank(data) { try writeDefaults(to: url); return url }
-        // A malformed config remains available for repair without modifying it.
-        guard let updated = try? normalized(data, refreshHelp: true) else { return url }
+        let data = try readData(url)
+        let updated = try normalized(data, refreshHelp: true)
         if updated != data { try write(updated, to: url) }
+        else { try backupForEditing(url) }
         return url
     }
 
@@ -51,7 +53,7 @@ public actor ActionsConfigurationStore {
     }
 
     /// Change only the preference in the latest valid on-disk config, preserving
-    /// custom actions and unknown fields. Invalid files must remain repairable.
+    /// custom actions and unknown fields. Invalid files are backed up first.
     public func setSkipConfirmation(_ value: Bool) throws -> ActionsConfiguration {
         _ = try load()
         let url = fileURL
@@ -64,33 +66,27 @@ public actor ActionsConfigurationStore {
     }
 
     @discardableResult public func reset() throws -> URL? {
-        let url = fileURL
-        let prepared = url.deletingLastPathComponent().appendingPathComponent("actions-reset-\(UUID().uuidString).json")
-        try writeDefaults(to: prepared)
-        defer { try? FileManager.default.removeItem(at: prepared) }
-        var backup: URL?
-        if FileManager.default.fileExists(atPath: url.path) {
-            guard (try? url.resolvingSymlinksInPath().resourceValues(forKeys: [.isRegularFileKey]))?.isRegularFile == true else {
-                throw ActionsConfigurationError.invalid("The config path is no longer a regular file. Choose another config file.")
-            }
-            let copy = url.deletingLastPathComponent().appendingPathComponent("actions-backup-\(UUID().uuidString).json")
-            // Rename preserves even an oversized/invalid config without copying it
-            // into memory or recursively copying an unexpected directory.
-            try FileManager.default.moveItem(at: url, to: copy)
-            backup = copy
+        try writeDefaults(to: fileURL)
+    }
+
+    private func recoverInvalidConfig(at url: URL) throws -> ActionsConfiguration {
+        try requireRegularFile(url)
+        guard FileManager.default.isReadableFile(atPath: url.path) else {
+            throw ActionsConfigurationError.invalid("The config is not readable. It was left untouched.")
         }
-        do { try FileManager.default.moveItem(at: prepared, to: url) }
-        catch {
-            if let backup, !FileManager.default.fileExists(atPath: url.path) {
-                try? FileManager.default.moveItem(at: backup, to: url)
-            }
-            throw error
-        }
-        return backup
+        let backup = backupURL(for: url)
+        let warning = "The previous JSON was invalid and was saved in \(backup.path). To restore it, fix the formatting or configuration issue in the backup, then copy and paste its contents into this new file."
+        let value = ActionsConfiguration(actions: ActionsConfiguration.defaults.actions,
+                                        notes: ActionsConfiguration.requiredNotes,
+                                        variables: ActionsConfiguration.standardVariables,
+                                        examples: ActionsConfiguration.standardExamples,
+                                        warning: warning)
+        try write(value.encoded(), to: url, backup: backup)
+        return value
     }
 
     /// Upgrade old built-ins and abbreviated tokens without discarding user fields.
-    /// Validation precedes writing, so a bad config remains intact for repair.
+    /// Validation precedes writing; recovery preserves invalid originals in backups.
     private func normalized(_ data: Data, refreshHelp: Bool) throws -> Data {
         guard var object = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any],
               let actions = object["actions"] as? [Any] else {
@@ -138,9 +134,55 @@ public actor ActionsConfigurationStore {
         return updated
     }
 
-    private func write(_ data: Data, to url: URL) throws {
-        try data.write(to: url, options: .atomic)
-        try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: url.path)
+    /// Stage the replacement first, then rename the original into a unique
+    /// backup. If publishing the replacement fails, restore the original path.
+    @discardableResult private func write(_ data: Data, to url: URL, backup requestedBackup: URL? = nil) throws -> URL? {
+        let manager = FileManager.default
+        let prepared = url.deletingLastPathComponent().appendingPathComponent(".actions-pending-\(UUID().uuidString).json")
+        defer { try? manager.removeItem(at: prepared) }
+        try data.write(to: prepared, options: .atomic)
+        try manager.setAttributes([.posixPermissions: 0o600], ofItemAtPath: prepared.path)
+        var backup: URL?
+        // attributesOfItem does not follow symlinks. Never move a directory,
+        // pipe or link and call it a byte-preserving config backup.
+        if manager.fileExists(atPath: url.path) || (try? manager.attributesOfItem(atPath: url.path)) != nil {
+            try requireRegularFile(url)
+            let destination = requestedBackup ?? backupURL(for: url)
+            try manager.moveItem(at: url, to: destination)
+            backup = destination
+            do { try manager.setAttributes([.posixPermissions: 0o600], ofItemAtPath: destination.path) }
+            catch {
+                try? manager.moveItem(at: destination, to: url)
+                throw error
+            }
+        }
+        do { try manager.moveItem(at: prepared, to: url) }
+        catch {
+            if let backup, !manager.fileExists(atPath: url.path) {
+                try? manager.moveItem(at: backup, to: url)
+            }
+            throw error
+        }
+        return backup
+    }
+
+    private func backupURL(for url: URL) -> URL {
+        let timestamp = ISO8601DateFormatter().string(from: Date()).replacingOccurrences(of: ":", with: "-")
+        return url.deletingLastPathComponent().appendingPathComponent("\(url.deletingPathExtension().lastPathComponent)-backup-\(timestamp)-\(UUID().uuidString).json")
+    }
+
+    private func requireRegularFile(_ url: URL) throws {
+        guard url.isFileURL,
+              (try? FileManager.default.attributesOfItem(atPath: url.path)[.type]) as? FileAttributeType == .typeRegular else {
+            throw ActionsConfigurationError.invalid("The config must be a regular local file. It was left untouched; choose another config file.")
+        }
+    }
+
+    private func backupForEditing(_ url: URL) throws {
+        try requireRegularFile(url)
+        let backup = backupURL(for: url)
+        try FileManager.default.copyItem(at: url, to: backup)
+        try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: backup.path)
     }
 
     private func ensureDefaultExists() throws {
@@ -150,11 +192,10 @@ public actor ActionsConfigurationStore {
         }
     }
 
-    private func writeDefaults(to url: URL) throws {
+    @discardableResult private func writeDefaults(to url: URL) throws -> URL? {
         try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true,
                                                  attributes: [.posixPermissions: 0o700])
-        try ActionsConfiguration.defaults.encoded().write(to: url, options: .atomic)
-        try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: url.path)
+        return try write(ActionsConfiguration.defaults.encoded(), to: url)
     }
 
     private func read(_ url: URL) throws -> ActionsConfiguration {
@@ -163,7 +204,9 @@ public actor ActionsConfigurationStore {
 
     private func readData(_ url: URL) throws -> Data {
         do { return try BoundedLocalFileReader.read(url, maximumBytes: 65_536) }
-        catch { throw ActionsConfigurationError.invalid("Choose a readable, regular local JSON file no larger than 64 KB.") }
+        catch is CancellationError { throw CancellationError() }
+        catch BoundedLocalFileReader.Failure.tooLarge { throw BoundedLocalFileReader.Failure.tooLarge }
+        catch { throw ActionsConfigurationError.invalid("Choose a readable, regular local JSON file no larger than 64 KB. The original was left untouched.") }
     }
 
     private func isBlank(_ data: Data) -> Bool {

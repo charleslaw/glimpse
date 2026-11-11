@@ -60,6 +60,11 @@ final class ActionsMenuController: NSObject, NSMenuDelegate {
             errorItem.isEnabled = false
             errorItem.toolTip = configError
         }
+        if let warning = configuration.warning {
+            let item = menu.addItem(withTitle: "Previous config backed up", action: nil, keyEquivalent: "")
+            item.isEnabled = false
+            item.toolTip = warning
+        }
         for action in configuration.actions {
             let item = menu.addItem(withTitle: action.title, action: #selector(runAction(_:)), keyEquivalent: "")
             item.target = self
@@ -132,7 +137,7 @@ final class ActionsMenuController: NSObject, NSMenuDelegate {
     private func showConfigError(_ message: String) {
         let alert = NSAlert()
         alert.messageText = "Actions Config Needs Attention"
-        alert.informativeText = "\(message)\n\nUsing the two default actions: Copy Image Path and Open Image Location.\n\nUse Edit Command Config… to fix the file. Check JSON quotes, commas and brackets, and keep version 1 with an actions array. Save a blank file to regenerate the defaults."
+        alert.informativeText = "\(message)\n\nUsing the two default actions: Copy Image Path and Open Image Location. The config could not be safely recovered and has been left untouched.\n\nUse Edit Command Config… to fix the file. Check JSON quotes, commas and brackets, and keep version 1 with an actions array. Save a blank file to regenerate the defaults."
         alert.addButton(withTitle: "Use Default Actions")
         alert.addButton(withTitle: "Edit Command Config…")
         if alert.runModal() == .alertSecondButtonReturn { editConfig() }

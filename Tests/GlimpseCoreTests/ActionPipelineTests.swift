@@ -61,13 +61,16 @@ final class ActionPipelineTests: XCTestCase {
         XCTAssertEqual(try Data(contentsOf: url), migrated)
     }
 
-    func testInvalidSchemaIsNotPartiallyMigrated() async throws {
+    func testInvalidSchemaIsBackedUpWithoutPartiallyMigratingTheOriginal() async throws {
         let folder = try TemporaryFolder()
         let original = Data(#"{"version":1,"actions":[{"kind":"copyImagePath","title":"Copy"},{"label":"Bad","cmd":"open {unknown}"}]}"#.utf8)
         let url = try folder.file("actions.json", data: original)
         let store = ActionsConfigurationStore(defaultURL: url, preferencesSuite: "GlimpseTests.\(UUID())")
-        do { _ = try await store.load(); XCTFail("Bad config accepted") } catch {}
-        _ = try await store.editableURL()
-        XCTAssertEqual(try Data(contentsOf: url), original)
+        let restored = try await store.load()
+        XCTAssertEqual(restored.actions, ActionsConfiguration.defaults.actions)
+        let backups = try FileManager.default.contentsOfDirectory(at: folder.url, includingPropertiesForKeys: nil)
+            .filter { $0.lastPathComponent.contains("-backup-") }
+        XCTAssertEqual(backups.count, 1)
+        XCTAssertEqual(try Data(contentsOf: XCTUnwrap(backups.first)), original)
     }
 }

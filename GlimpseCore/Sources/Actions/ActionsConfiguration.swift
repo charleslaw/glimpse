@@ -6,17 +6,19 @@ public struct ActionsConfiguration: Codable, Equatable, Sendable {
     public let notes: String?
     public let variables: [String: String]?
     public let examples: [ImageAction]?
+    public let warning: String?
     public let skipConfirmation: Bool
 
     public init(version: Int = 1, actions: [ImageAction], notes: String? = nil,
                 variables: [String: String]? = nil, examples: [ImageAction]? = nil,
-                skipConfirmation: Bool = false) {
+                skipConfirmation: Bool = false, warning: String? = nil) {
         self.version = version
         self.actions = actions
         self.notes = notes
         self.variables = variables
         self.examples = examples
         self.skipConfirmation = skipConfirmation
+        self.warning = warning
     }
 
     public static let requiredNotes = "To reset the actions, save a blank file and Glimpse will regenerate the defaults."
@@ -39,6 +41,7 @@ public struct ActionsConfiguration: Codable, Equatable, Sendable {
     private enum CodingKeys: String, CodingKey {
         case version, actions, notes, variables, examples
         case skipConfirmation = "skip_confirmation"
+        case warning = "WARNING"
     }
 
     public init(from decoder: Decoder) throws {
@@ -46,6 +49,7 @@ public struct ActionsConfiguration: Codable, Equatable, Sendable {
         version = try values.decode(Int.self, forKey: .version)
         actions = try values.decode([ImageAction].self, forKey: .actions)
         skipConfirmation = values.contains(.skipConfirmation) ? try values.decode(Bool.self, forKey: .skipConfirmation) : false
+        warning = try values.decodeIfPresent(String.self, forKey: .warning)
         notes = try values.decodeIfPresent(String.self, forKey: .notes)
         variables = try values.decodeIfPresent([String: String].self, forKey: .variables)
         if let old = try? values.decode([String: String].self, forKey: .examples) {

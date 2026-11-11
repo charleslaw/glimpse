@@ -59,17 +59,20 @@ final class ActionConfirmationTests: XCTestCase {
         XCTAssertEqual((try FileManager.default.attributesOfItem(atPath: url.path)[.posixPermissions] as? NSNumber)?.intValue, 0o600)
     }
 
-    func testWrongFlagTypesAreRejectedAndKeptForRepair() async throws {
+    func testWrongFlagTypesRecoverToConfirmationOnAndPreserveOriginal() async throws {
         for flag in ["null", "1", "0", #""true""#, "[]", "{}"] {
             let folder = try TemporaryFolder()
             let data = Data("{\"version\":1,\"actions\":[],\"skip_confirmation\":\(flag)}".utf8)
             let url = try folder.file("actions.json", data: data)
             let store = ActionsConfigurationStore(defaultURL: url, preferencesSuite: "GlimpseTests.\(UUID())")
-            do { _ = try await store.load(); XCTFail("Invalid flag accepted: \(flag)") }
-            catch { XCTAssertTrue(error.localizedDescription.contains("skip_confirmation"), error.localizedDescription) }
-            _ = try await store.editableURL()
-            do { _ = try await store.setSkipConfirmation(true); XCTFail("Invalid config overwritten") } catch {}
-            XCTAssertEqual(try Data(contentsOf: url), data)
+            XCTAssertThrowsError(try ActionsConfiguration.decode(data))
+            let recovered = try await store.load()
+            XCTAssertFalse(recovered.skipConfirmation)
+            XCTAssertNotNil(recovered.warning)
+            let backups = try FileManager.default.contentsOfDirectory(at: folder.url, includingPropertiesForKeys: nil)
+                .filter { $0.lastPathComponent.contains("-backup-") }
+            XCTAssertEqual(backups.count, 1)
+            XCTAssertEqual(try Data(contentsOf: XCTUnwrap(backups.first)), data)
         }
     }
 
